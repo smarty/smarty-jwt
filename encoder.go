@@ -3,10 +3,10 @@ package jwt
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 )
 
 type Encoder struct {
-
 }
 
 func NewEncoder() *Encoder {
@@ -14,6 +14,11 @@ func NewEncoder() *Encoder {
 }
 
 func (this *Encoder) Encode(claims interface{}) string {
-	jsonStuff, _ := json.Marshal(claims)
-	return base64.RawURLEncoding.EncodeToString(jsonStuff)
+	header, _ := json.Marshal(map[string]string{"alg": "none"})
+	payload, _ := json.Marshal(claims)
+	//payload = bytes.ReplaceAll(payload, []byte(","), []byte(",\n"))
+	fmt.Println(string(payload))
+	encodedHeader := base64.RawStdEncoding.EncodeToString(header)
+	encodedBody := base64.RawStdEncoding.EncodeToString(payload)
+	return encodedHeader + "." + encodedBody + "."
 }
