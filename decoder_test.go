@@ -17,7 +17,7 @@ type DecoderFixture struct {
 }
 
 func (this *DecoderFixture) Setup() {
-	this.decoder = NewDecoder()
+	this.decoder = NewDecoder(ParseIssuer)
 }
 
 func (this *DecoderFixture) TestDecode() {

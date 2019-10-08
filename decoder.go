@@ -7,10 +7,11 @@ import (
 )
 
 type Decoder struct {
+	claimCallbacks []ClaimCallback
 }
 
-func NewDecoder() *Decoder {
-	return &Decoder{}
+func NewDecoder(claimCallbacks ...ClaimCallback) *Decoder {
+	return &Decoder{claimCallbacks: claimCallbacks}
 }
 
 func (this Decoder) Decode(token string, claims interface{}) error {
@@ -21,8 +22,9 @@ func (this Decoder) Decode(token string, claims interface{}) error {
 	var m map[string]interface{} // TODO: better name
 	_ = json.Unmarshal(payloadBytes, &m)
 
-	issuer := claims.(Issuer)           // TODO protect cast
-	issuer.SetIssuer(m["iss"].(string)) // TODO protect cast
+	for _, callback := range this.claimCallbacks {
+		callback(m, claims)
+	}
 
 	expiration := claims.(Expiration)  // TODO protect cost
 	value := int64(m["exp"].(float64)) // TODO protect cast
@@ -30,4 +32,3 @@ func (this Decoder) Decode(token string, claims interface{}) error {
 
 	return nil
 }
-
