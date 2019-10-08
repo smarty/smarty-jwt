@@ -12,6 +12,7 @@ type Encoder struct {
 	headers    map[string]string
 }
 
+// TODO: functional options (algorithm, secret, serializer)
 func NewEncoder() *Encoder {
 	return &Encoder{
 		serializer: newDefaultSerializer(),
