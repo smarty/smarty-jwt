@@ -12,7 +12,7 @@ import (
 type rfcExample struct {
 	Issuer     string `json:"iss"`
 	Expiration int    `json:"exp"`
-	URL        bool   `json:"http://example.com/is_root"`
+	IsRoot     bool   `json:"http://example.com/is_root"`
 }
 
 func TestEncoderFixture(t *testing.T) {
@@ -32,12 +32,14 @@ func (this *EncoderFixture) TestEncode() {
 	token := this.encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,
-		URL:        true,
+		IsRoot:     true,
 	})
 
 	this.So(token, should.Equal, ""+
 		"eyJhbGciOiJub25lIn0."+
 		"eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.")
+
+	//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzbWFydHlzdHJlZXRzIiwiZXhwIjoxMjM0NTY3ODl9.4bMJS7-js_HuWLxyLVXRhnVAV3ax2Ey2v6D6HY0Nz4A
 }
 
 func (this *EncoderFixture) Serialize(claims interface{}) []byte {
