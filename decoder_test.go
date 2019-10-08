@@ -20,7 +20,7 @@ func (this *DecoderFixture) Setup() {
 	this.decoder = NewDecoder(ParseIssuer, ParseExpiration)
 }
 
-func (this *DecoderFixture) SkipTestDecode() {
+func (this *DecoderFixture) TestDecode() {
 	token := "eyJhbGciOiJub25lIn0.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ."
 
 	var claims parsedPayload

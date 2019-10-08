@@ -14,7 +14,7 @@ func TestExpirationCallbackFixture(t *testing.T) {
 type ExpirationCallbackFixture struct {
 	*gunit.Fixture
 	expiration int64
-	claims map[string]interface{}
+	claims     map[string]interface{}
 }
 
 func (this *ExpirationCallbackFixture) Setup() {
@@ -43,6 +43,14 @@ func (this *ExpirationCallbackFixture) TestMalformedExpiration() {
 	ParseExpiration(this.claims, this)
 
 	this.So(this.expiration, should.Equal, 0)
+}
+
+func (this *ExpirationCallbackFixture) TestFloat64() {
+	this.claims["exp"] = 1.23
+
+	ParseExpiration(this.claims, this)
+
+	this.So(this.expiration, should.Equal, 1)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////

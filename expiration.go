@@ -6,7 +6,10 @@ func ParseExpiration(claims map[string]interface{}, data interface{}) {
 		return
 	}
 
-	if value, ok := claims["exp"].(int); ok {
+	switch value := claims["exp"].(type) {
+	case float64:
+		expiration.SetExpiration(int64(value))
+	case int:
 		expiration.SetExpiration(int64(value))
 	}
 }
