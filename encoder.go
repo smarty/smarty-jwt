@@ -1,23 +1,58 @@
 package jwt
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
 	"encoding/base64"
 )
 
 type Encoder struct {
 	serializer Serializer
+	secret     []byte
+	base64     func([]byte) string
+	headers    map[string]string
 }
 
-func NewEncoder(serializer Serializer) *Encoder {
-	return &Encoder{serializer: serializer}
+func NewEncoder() *Encoder {
+	return &Encoder{
+		base64:     base64.RawURLEncoding.EncodeToString,
+		serializer: newDefaultSerializer(),
+		headers:    map[string]string{"alg": "none"},
+	}
 }
 
-func (this *Encoder) Encode(claims interface{}) string {
-	header := this.serializer.Serialize(map[string]string{"alg": "none"})
-	payload := this.serializer.Serialize(claims)
-	encodedHeader := base64.RawURLEncoding.EncodeToString(header)
-	encodedBody := base64.RawURLEncoding.EncodeToString(payload)
-	return encodedHeader + "." + encodedBody + "."
+// TODO Define with encoder receiver (reuse HMAC)
+func Hash(src string, secret []byte) []byte {
+	h := hmac.New(sha256.New, secret)
+	h.Write([]byte(src))
+	return h.Sum(nil)
 }
+
+func (this *Encoder) Encode(claims interface{}) (token string) {
+	token += this.header()
+	token += this.payload(claims)
+	token += this.signature(token)
+	return token
+}
+func (this *Encoder) header() string {
+	return this.base64(this.serializer.Serialize(this.headers))
+}
+func (this *Encoder) payload(claims interface{}) string {
+	return "." + this.base64(this.serializer.Serialize(claims))
+}
+func (this *Encoder) signature(token string) string {
+	return "." + this.base64(this.calculateSignature(token))
+}
+func (this *Encoder) calculateSignature(token string) []byte {
+	if this.headers["alg"] == "none" {
+		return nil
+	} else {
+		return Hash(token, this.secret)
+	}
+}
+
+func (this *Encoder) setAlgorithm(algorithm string)       { this.headers["alg"] = algorithm }
+func (this *Encoder) setSecret(secret []byte)             { this.secret = secret }
+func (this *Encoder) setSerializer(serializer Serializer) { this.serializer = serializer }
 
 // TODO: "iss" must be a string or URI
