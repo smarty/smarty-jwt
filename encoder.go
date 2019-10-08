@@ -9,13 +9,11 @@ import (
 type Encoder struct {
 	serializer Serializer
 	secret     []byte
-	base64     func([]byte) string
 	headers    map[string]string
 }
 
 func NewEncoder() *Encoder {
 	return &Encoder{
-		base64:     base64.RawURLEncoding.EncodeToString,
 		serializer: newDefaultSerializer(),
 		headers:    map[string]string{"alg": "none"},
 	}
@@ -42,6 +40,9 @@ func (this *Encoder) payload(claims interface{}) string {
 }
 func (this *Encoder) signature(token string) string {
 	return "." + this.base64(this.calculateSignature(token))
+}
+func (this *Encoder) base64(in []byte) string {
+	return base64.RawURLEncoding.EncodeToString(in)
 }
 func (this *Encoder) calculateSignature(token string) []byte {
 	if this.headers["alg"] == "none" {
