@@ -2,21 +2,20 @@ package jwt
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 )
 
 type Encoder struct {
+	serializer Serializer
 }
 
-func NewEncoder() *Encoder {
-	return &Encoder{}
+func NewEncoder(serializer Serializer) *Encoder {
+	return &Encoder{serializer: serializer}
 }
 
 func (this *Encoder) Encode(claims interface{}) string {
-	header, _ := json.Marshal(map[string]string{"alg": "none"})
-	payload, _ := json.Marshal(claims)
-	//payload = bytes.ReplaceAll(payload, []byte(","), []byte(",\n"))
+	header := this.serializer.Serialize(map[string]string{"alg": "none"})
+	payload := this.serializer.Serialize(claims)
 	fmt.Println(string(payload))
 	encodedHeader := base64.RawStdEncoding.EncodeToString(header)
 	encodedBody := base64.RawStdEncoding.EncodeToString(payload)
