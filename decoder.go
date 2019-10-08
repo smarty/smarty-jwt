@@ -3,7 +3,6 @@ package jwt
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"strings"
 )
 
@@ -19,9 +18,8 @@ func (this Decoder) Decode(token string, claims interface{}) error {
 	payload := data[1]
 	payloadBytes, _ := base64.RawURLEncoding.DecodeString(payload)
 
-	var m map[string]interface{}
+	var m map[string]interface{} // TODO: better name
 	_ = json.Unmarshal(payloadBytes, &m)
-	fmt.Println(m)
 
 	issuer := claims.(Issuer)           // TODO protect cast
 	issuer.SetIssuer(m["iss"].(string)) // TODO protect cast

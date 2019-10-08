@@ -22,6 +22,7 @@ func (this *DecoderFixture) Setup() {
 
 func (this *DecoderFixture) TestDecode() {
 	token := "eyJhbGciOiJub25lIn0.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ."
+
 	var claims parsedPayload
 
 	err := this.decoder.Decode(token, &claims)

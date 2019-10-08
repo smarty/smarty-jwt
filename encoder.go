@@ -19,3 +19,5 @@ func (this *Encoder) Encode(claims interface{}) string {
 	encodedBody := base64.RawURLEncoding.EncodeToString(payload)
 	return encodedHeader + "." + encodedBody + "."
 }
+
+// TODO: "iss" must be a string or URI
