@@ -31,10 +31,3 @@ func (this Decoder) Decode(token string, claims interface{}) error {
 	return nil
 }
 
-type Expiration interface {
-	SetExpiration(int64)
-}
-
-type Issuer interface {
-	SetIssuer(string)
-}
