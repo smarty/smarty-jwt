@@ -66,5 +66,3 @@ func (this *Encoder) calculateSignature(token string) []byte {
 		return hash(token, this.secret)
 	}
 }
-
-// TODO: "iss" must be a string or URI

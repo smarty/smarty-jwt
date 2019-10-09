@@ -1,7 +1,5 @@
 package jwt
 
-// TODO move claims into a separate "claims" package?
-
 import (
 	"testing"
 
