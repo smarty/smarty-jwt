@@ -13,8 +13,8 @@ type Decoder struct {
 	secret         []byte
 }
 
-func NewDecoder(claimCallbacks ...ClaimCallback) *Decoder {
-	return &Decoder{claimCallbacks: claimCallbacks}
+func NewDecoder(secret []byte, claimCallbacks ...ClaimCallback) *Decoder {
+	return &Decoder{secret: secret, claimCallbacks: claimCallbacks}
 }
 
 func (this Decoder) Decode(token string, claims interface{}) error {
@@ -57,8 +57,4 @@ func (this Decoder) parseClaims(claimValues map[string]interface{}, claims inter
 func deserializeClaims(payloadBytes []byte) (parsedClaims map[string]interface{}) {
 	_ = json.Unmarshal(payloadBytes, &parsedClaims) // TODO test ignored err
 	return parsedClaims
-}
-
-func (this *Decoder) SetSecret(secret []byte) {
-	this.secret = secret
 }

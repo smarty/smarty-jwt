@@ -29,8 +29,8 @@ func (this *EncoderFixture) Setup() {
 }
 
 func (this *EncoderFixture) TestEncode() {
-	this.encoder.setSerializer(this)
-	token := this.encoder.Encode(rfcExample{
+	encoder := NewEncoder(Algorithm("none"), Serializer(this))
+	token := encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,
 		IsRoot:     true,
@@ -43,10 +43,8 @@ func (this *EncoderFixture) TestEncode() {
 }
 
 func (this *EncoderFixture) TestEncodeWithSignature() {
-	this.encoder.setAlgorithm("HS256")
-	this.encoder.setSecret([]byte("secret"))
-
-	token := this.encoder.Encode(rfcExample{
+	encoder := NewEncoder(Secret([]byte("secret")), Algorithm("HS256"))
+	token := encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,
 		IsRoot:     true,

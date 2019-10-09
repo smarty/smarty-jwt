@@ -7,16 +7,38 @@ import (
 )
 
 type Encoder struct {
-	serializer Serializer
+	serializer JSONSerializer
 	secret     []byte
 	headers    map[string]string
 }
 
 // TODO: functional options (algorithm, secret, serializer)
-func NewEncoder() *Encoder {
-	return &Encoder{
+func NewEncoder(options ...EncoderOption) *Encoder {
+	encoder := &Encoder{
 		serializer: newDefaultSerializer(),
-		headers:    map[string]string{"alg": "none"},
+		headers:    map[string]string{"alg": "HS256"},
+	}
+	for _, option := range options {
+		option(encoder)
+	}
+	return encoder
+}
+
+type EncoderOption func(encoder *Encoder)
+
+func Algorithm(algorithm string) EncoderOption {
+	return func(encoder *Encoder) {
+		encoder.headers["alg"] = algorithm
+	}
+}
+func Secret(secret []byte) EncoderOption {
+	return func(encoder *Encoder) {
+		encoder.secret = secret
+	}
+}
+func Serializer(serializer JSONSerializer) EncoderOption {
+	return func(encoder *Encoder) {
+		encoder.serializer = serializer
 	}
 }
 
@@ -52,9 +74,5 @@ func (this *Encoder) calculateSignature(token string) []byte {
 		return Hash(token, this.secret)
 	}
 }
-
-func (this *Encoder) setAlgorithm(algorithm string)       { this.headers["alg"] = algorithm }
-func (this *Encoder) setSecret(secret []byte)             { this.secret = secret }
-func (this *Encoder) setSerializer(serializer Serializer) { this.serializer = serializer }
 
 // TODO: "iss" must be a string or URI

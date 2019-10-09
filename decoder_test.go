@@ -19,7 +19,7 @@ type DecoderFixture struct {
 }
 
 func (this *DecoderFixture) Setup() {
-	this.decoder = NewDecoder(ParseIssuer, ParseExpiration)
+	this.decoder = NewDecoder([]byte("secret"), ParseIssuer, ParseExpiration)
 }
 
 func (this *DecoderFixture) TestDecodeWithoutSignature() {
@@ -38,7 +38,6 @@ func (this *DecoderFixture) TestDecodeValidSignature() {
 	secret := []byte("secret")
 	token := generateTokenWithGoodSignature(secret)
 
-	this.decoder.SetSecret(secret)
 	var claims parsedPayload
 	err := this.decoder.Decode(token, &claims)
 
@@ -48,9 +47,7 @@ func (this *DecoderFixture) TestDecodeValidSignature() {
 }
 
 func generateTokenWithGoodSignature(secret []byte) string {
-	encoder := NewEncoder()
-	encoder.setAlgorithm("HS256")
-	encoder.setSecret(secret)
+	encoder := NewEncoder(Algorithm("HS256"), Secret(secret))
 	return encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,
@@ -61,7 +58,6 @@ func generateTokenWithGoodSignature(secret []byte) string {
 func (this *DecoderFixture) TestDecodeInvalidWellFormedSignature() {
 	secret := []byte("secret")
 	token := generateTokenWithBadSignature(secret)
-	this.decoder.SetSecret(secret)
 
 	var claims parsedPayload
 	err := this.decoder.Decode(token, &claims)

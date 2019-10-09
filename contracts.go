@@ -1,6 +1,6 @@
 package jwt
 
-type Serializer interface {
+type JSONSerializer interface {
 	Serialize(interface{}) []byte
 }
 
