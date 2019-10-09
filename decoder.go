@@ -44,7 +44,7 @@ func unmarshalHeader(data string) (header map[string]interface{}, err error) {
 }
 func signatureIsValid(segments []string, secret []byte) bool {
 	providedSignature, _ := base64.RawURLEncoding.DecodeString(segments[2]) // TODO test ignored err
-	computedSignature := Hash(segments[0]+"."+segments[1], secret)
+	computedSignature := hash(segments[0]+"."+segments[1], secret)
 	return subtle.ConstantTimeCompare(providedSignature, computedSignature) == 1
 }
 

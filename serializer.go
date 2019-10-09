@@ -10,6 +10,6 @@ func (this *defaultSerializer) Serialize(v interface{}) []byte {
 	return serialized
 }
 
-func newDefaultSerializer() JSONSerializer {
+func newDefaultSerializer() jsonSerializer {
 	return &defaultSerializer{}
 }

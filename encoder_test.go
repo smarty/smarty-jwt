@@ -21,15 +21,10 @@ func TestEncoderFixture(t *testing.T) {
 
 type EncoderFixture struct {
 	*gunit.Fixture
-	encoder *Encoder
-}
-
-func (this *EncoderFixture) Setup() {
-	this.encoder = NewEncoder()
 }
 
 func (this *EncoderFixture) TestEncode() {
-	encoder := NewEncoder(Algorithm("none"), Serializer(this))
+	encoder := NewEncoder(Algorithm("none"), serializer(this))
 	token := encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,

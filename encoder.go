@@ -7,16 +7,15 @@ import (
 )
 
 type Encoder struct {
-	serializer JSONSerializer
+	serializer jsonSerializer
 	secret     []byte
 	headers    map[string]string
 }
 
-// TODO: functional options (algorithm, secret, serializer)
 func NewEncoder(options ...EncoderOption) *Encoder {
 	encoder := &Encoder{
 		serializer: newDefaultSerializer(),
-		headers:    map[string]string{"alg": "HS256"},
+		headers:    map[string]string{},
 	}
 	for _, option := range options {
 		option(encoder)
@@ -36,14 +35,14 @@ func Secret(secret []byte) EncoderOption {
 		encoder.secret = secret
 	}
 }
-func Serializer(serializer JSONSerializer) EncoderOption {
+func serializer(serializer jsonSerializer) EncoderOption {
 	return func(encoder *Encoder) {
 		encoder.serializer = serializer
 	}
 }
 
 // TODO Define with encoder receiver (reuse HMAC)
-func Hash(src string, secret []byte) []byte {
+func hash(src string, secret []byte) []byte {
 	h := hmac.New(sha256.New, secret)
 	h.Write([]byte(src))
 	return h.Sum(nil)
@@ -71,7 +70,7 @@ func (this *Encoder) calculateSignature(token string) []byte {
 	if this.headers["alg"] == "none" {
 		return nil
 	} else {
-		return Hash(token, this.secret)
+		return hash(token, this.secret)
 	}
 }
 
