@@ -35,25 +35,27 @@ func (this *DecoderFixture) TestDecodeWithoutSignature() {
 }
 
 func (this *DecoderFixture) TestDecodeValidSignature() {
-	encoder := NewEncoder()
-	encoder.setAlgorithm("HS256")
 	secret := []byte("secret")
-	encoder.setSecret(secret)
-
-	token := encoder.Encode(rfcExample{
-		Issuer:     "joe",
-		Expiration: 1300819380,
-		IsRoot:     true,
-	})
-
-	var claims parsedPayload
+	token := generateTokenWithGoodSignature(secret)
 
 	this.decoder.SetSecret(secret)
+	var claims parsedPayload
 	err := this.decoder.Decode(token, &claims)
 
 	this.So(err, should.BeNil)
 	this.So(claims.Expiration, should.Equal, 1300819380)
 	this.So(claims.Issuer, should.Equal, "joe")
+}
+
+func generateTokenWithGoodSignature(secret []byte) string {
+	encoder := NewEncoder()
+	encoder.setAlgorithm("HS256")
+	encoder.setSecret(secret)
+	return encoder.Encode(rfcExample{
+		Issuer:     "joe",
+		Expiration: 1300819380,
+		IsRoot:     true,
+	})
 }
 
 func (this *DecoderFixture) TestDecodeInvalidWellFormedSignature() {
@@ -70,18 +72,10 @@ func (this *DecoderFixture) TestDecodeInvalidWellFormedSignature() {
 }
 
 func generateTokenWithBadSignature(secret []byte) string {
-	encoder := NewEncoder()
-	encoder.setAlgorithm("HS256")
-	encoder.setSecret(secret)
-	token := encoder.Encode(rfcExample{
-		Issuer:     "joe",
-		Expiration: 1300819380,
-		IsRoot:     true,
-	})
+	token := generateTokenWithGoodSignature(secret)
 	parsedToken := strings.Split(token, ".")
 	parsedToken[2] = base64.RawURLEncoding.EncodeToString(Hash("badToken", secret))
-	token = strings.Join(parsedToken, ".")
-	return token
+	return strings.Join(parsedToken, ".")
 }
 
 type parsedPayload struct {
