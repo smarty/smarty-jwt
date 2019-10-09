@@ -33,15 +33,21 @@ func parseToken(token string, secret []byte) ([]byte, error) {
 	if len(segments) != 3 {
 		return nil, SegmentCountErr
 	}
-	header, _ := unmarshalHeader(segments[0]) // TODO test ignored err
+	header, err := unmarshalHeader(segments[0])
+	if err != nil {
+		return nil, err
+	}
 	if header["alg"] != "none" && !signatureIsValid(segments, secret) {
 		return nil, errors.New("bad signature")
 	}
 	return base64.RawURLEncoding.DecodeString(segments[1])
 }
 func unmarshalHeader(data string) (header map[string]interface{}, err error) {
-	headerBytes, _ := base64.RawURLEncoding.DecodeString(data) // TODO test ignored err
-	_ = json.Unmarshal(headerBytes, &header)                   // TODO test ignored err
+	headerBytes, err := base64.RawURLEncoding.DecodeString(data)
+	if err != nil {
+		return nil, MalformedHeaderErr
+	}
+	_ = json.Unmarshal(headerBytes, &header) // TODO test ignored err
 	return header, err
 }
 func signatureIsValid(segments []string, secret []byte) bool {

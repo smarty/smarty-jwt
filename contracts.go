@@ -21,3 +21,4 @@ type Scope interface {
 }
 
 var SegmentCountErr = errors.New("a JWT must have three segments separated by period characters")
+var MalformedHeaderErr = errors.New("the header was malformed")

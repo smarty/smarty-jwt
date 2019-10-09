@@ -81,6 +81,14 @@ func generateTokenWithBadSignature(secret []byte) string {
 	return strings.Join(parsedToken, ".")
 }
 
+func (this *DecoderFixture) TestDecodeFailsWhenHeaderIsMalformed() {
+	token := "****** BAD HEADER ******.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ."
+
+	err := this.decoder.Decode(token, nil)
+
+	this.So(err, should.Equal, MalformedHeaderErr)
+}
+
 type parsedPayload struct {
 	Issuer     string
 	Expiration int64
