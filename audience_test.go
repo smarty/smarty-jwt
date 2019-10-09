@@ -16,19 +16,29 @@ func TestAudienceFixture(t *testing.T) {
 type AudienceFixture struct {
 	*gunit.Fixture
 	claims   map[string]interface{}
-	audience string
+	audience []string
 }
 
 func (this *AudienceFixture) Setup() {
 	this.claims = map[string]interface{}{}
 }
 
-func (this *AudienceFixture) TestAudienceParsed() {
+func (this *AudienceFixture) TestAudienceParsedWithString() {
 	this.claims["aud"] = "audience"
 
 	ParseAudience(this.claims, this)
 
-	this.So(this.audience, should.Equal, "audience")
+	this.So(this.audience[0], should.Equal, "audience")
+}
+
+func (this *AudienceFixture) TestAudienceParsedWithSlice() {
+	this.claims["aud"] = []string{"audience0", "audience1", "audience2"}
+
+	ParseAudience(this.claims, this)
+
+	this.So(this.audience[0], should.Equal, "audience0")
+	this.So(this.audience[1], should.Equal, "audience1")
+	this.So(this.audience[2], should.Equal, "audience2")
 }
 
 func (this *AudienceFixture) TestAudienceCannotBeCast() {
@@ -47,6 +57,6 @@ func (this *AudienceFixture) TestMalformedAudience() {
 
 /////////////////////////////////////////////////////////////////////////////////////
 
-func (this *AudienceFixture) SetAudience(audience string) {
+func (this *AudienceFixture) SetAudience(audience ...string) {
 	this.audience = audience
 }

@@ -6,6 +6,10 @@ func ParseAudience(claims map[string]interface{}, data interface{}) {
 		return
 	}
 
+	if values, ok := claims["aud"].([]string); ok {
+		audience.SetAudience(values...)
+	}
+
 	if value, ok := claims["aud"].(string); ok {
 		audience.SetAudience(value)
 	}
