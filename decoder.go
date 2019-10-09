@@ -37,8 +37,11 @@ func parseToken(token string, secret []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if header["alg"] != "none" && !signatureIsValid(segments, secret) {
-		return nil, errors.New("bad signature")
+	if header["alg"] != "none" {
+		err := validateSignature(segments, secret)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return base64.RawURLEncoding.DecodeString(segments[1])
 }
@@ -50,10 +53,17 @@ func unmarshalHeader(data string) (header map[string]interface{}, err error) {
 	_ = json.Unmarshal(headerBytes, &header) // TODO test ignored err
 	return header, err
 }
-func signatureIsValid(segments []string, secret []byte) bool {
-	providedSignature, _ := base64.RawURLEncoding.DecodeString(segments[2]) // TODO test ignored err
+func validateSignature(segments []string, secret []byte) error {
+	providedSignature, err := base64.RawURLEncoding.DecodeString(segments[2]) // TODO test ignored err
+	if err != nil {
+		return MalformedSignatureErr
+	}
 	computedSignature := hash(segments[0]+"."+segments[1], secret)
-	return subtle.ConstantTimeCompare(providedSignature, computedSignature) == 1
+	comparison := subtle.ConstantTimeCompare(providedSignature, computedSignature)
+	if comparison == 1 {
+		return nil
+	}
+	return errors.New("bad signature")
 }
 
 func (this Decoder) parseClaims(claimValues map[string]interface{}, claims interface{}) {

@@ -89,6 +89,15 @@ func (this *DecoderFixture) TestDecodeFailsWhenHeaderIsMalformed() {
 	this.So(err, should.Equal, MalformedHeaderErr)
 }
 
+func (this *DecoderFixture) FocusTestDecodeFailsWhenSignatureIsMalformed() {
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ." +
+		"********* BAD SIGNATURE ********"
+
+	err := this.decoder.Decode(token, nil)
+
+	this.So(err, should.Equal, MalformedSignatureErr)
+}
+
 type parsedPayload struct {
 	Issuer     string
 	Expiration int64
