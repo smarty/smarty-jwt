@@ -13,3 +13,7 @@ type Expiration interface {
 type Issuer interface {
 	SetIssuer(string)
 }
+
+type Audience interface {
+	SetAudience(string)
+}
