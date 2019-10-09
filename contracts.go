@@ -1,5 +1,7 @@
 package jwt
 
+import "errors"
+
 type ClaimCallback func(claims map[string]interface{}, data interface{})
 
 type Expiration interface {
@@ -17,3 +19,5 @@ type Audience interface {
 type Scope interface {
 	SetScope(string)
 }
+
+var SegmentCountErr = errors.New("a JWT must have three segments separated by period characters")

@@ -29,8 +29,10 @@ func (this Decoder) Decode(token string, claims interface{}) error {
 }
 
 func parseToken(token string, secret []byte) ([]byte, error) {
-	// TODO if length of jwt after splitting != 3, bail with an error
 	segments := strings.Split(token, ".")
+	if len(segments) != 3 {
+		return nil, SegmentCountErr
+	}
 	header, _ := unmarshalHeader(segments[0]) // TODO test ignored err
 	if header["alg"] != "none" && !signatureIsValid(segments, secret) {
 		return nil, errors.New("bad signature")

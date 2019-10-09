@@ -46,6 +46,13 @@ func (this *DecoderFixture) TestDecodeValidSignature() {
 	this.So(claims.Issuer, should.Equal, "joe")
 }
 
+func (this *DecoderFixture) TestJWTsMustHaveThreeSegmentsToBeDecoded() {
+	this.So(this.decoder.Decode("111", nil), should.Equal, SegmentCountErr)
+	this.So(this.decoder.Decode("111.222", nil), should.Equal, SegmentCountErr)
+	this.So(this.decoder.Decode("111.222.333", nil), should.NotEqual, SegmentCountErr)
+	this.So(this.decoder.Decode("111.222.333.444", nil), should.Equal, SegmentCountErr) // FUTURE HS384 ?
+}
+
 func generateTokenWithGoodSignature(secret []byte) string {
 	encoder := NewEncoder(Algorithm("HS256"), Secret(secret))
 	return encoder.Encode(rfcExample{
