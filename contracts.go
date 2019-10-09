@@ -17,3 +17,7 @@ type Issuer interface {
 type Audience interface {
 	SetAudience(string)
 }
+
+type Scope interface {
+	SetScope(string)
+}
