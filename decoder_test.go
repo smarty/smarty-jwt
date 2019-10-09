@@ -57,27 +57,31 @@ func (this *DecoderFixture) TestDecodeValidSignature() {
 }
 
 func (this *DecoderFixture) TestDecodeInvalidWellFormedSignature() {
+	secret := []byte("secret")
+	token := generateTokenWithBadSignature(secret)
+	this.decoder.SetSecret(secret)
+
+	var claims parsedPayload
+	err := this.decoder.Decode(token, &claims)
+
+	this.So(err, should.NotBeNil)
+	this.So(claims.Expiration, should.Equal, 0)
+	this.So(claims.Issuer, should.BeBlank)
+}
+
+func generateTokenWithBadSignature(secret []byte) string {
 	encoder := NewEncoder()
 	encoder.setAlgorithm("HS256")
-	secret := []byte("secret")
 	encoder.setSecret(secret)
 	token := encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,
 		IsRoot:     true,
 	})
-
 	parsedToken := strings.Split(token, ".")
 	parsedToken[2] = base64.RawURLEncoding.EncodeToString(Hash("badToken", secret))
 	token = strings.Join(parsedToken, ".")
-
-	var claims parsedPayload
-
-	err := this.decoder.Decode(token, &claims)
-
-	this.So(err, should.NotBeNil)
-	this.So(claims.Expiration, should.Equal, 0)
-	this.So(claims.Issuer, should.BeBlank)
+	return token
 }
 
 type parsedPayload struct {
