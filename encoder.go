@@ -4,19 +4,16 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 )
 
 type Encoder struct {
-	serializer jsonSerializer
-	secret     []byte
-	headers    map[string]string
+	secret  []byte
+	headers map[string]string
 }
 
 func NewEncoder(options ...EncoderOption) *Encoder {
-	encoder := &Encoder{
-		serializer: newDefaultSerializer(),
-		headers:    map[string]string{},
-	}
+	encoder := &Encoder{headers: map[string]string{}}
 	for _, option := range options {
 		option(encoder)
 	}
@@ -35,13 +32,7 @@ func Secret(secret []byte) EncoderOption {
 		encoder.secret = secret
 	}
 }
-func serializer(serializer jsonSerializer) EncoderOption {
-	return func(encoder *Encoder) {
-		encoder.serializer = serializer
-	}
-}
 
-// TODO Define with encoder receiver (reuse HMAC)
 func hash(src string, secret []byte) []byte {
 	h := hmac.New(sha256.New, secret)
 	h.Write([]byte(src))
@@ -55,10 +46,12 @@ func (this *Encoder) Encode(claims interface{}) (token string) {
 	return token
 }
 func (this *Encoder) header() string {
-	return this.base64(this.serializer.Serialize(this.headers))
+	serialized, _ := json.Marshal(this.headers)
+	return this.base64(serialized)
 }
 func (this *Encoder) payload(claims interface{}) string {
-	return "." + this.base64(this.serializer.Serialize(claims))
+	serialized, _ := json.Marshal(claims)
+	return "." + this.base64(serialized)
 }
 func (this *Encoder) signature(token string) string {
 	return "." + this.base64(this.calculateSignature(token))

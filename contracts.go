@@ -1,9 +1,5 @@
 package jwt
 
-type jsonSerializer interface {
-	Serialize(interface{}) []byte
-}
-
 type ClaimCallback func(claims map[string]interface{}, data interface{})
 
 type Expiration interface {
