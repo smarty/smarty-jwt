@@ -34,12 +34,12 @@ func (this *EncoderFixture) TestEncode() {
 }
 
 func (this *EncoderFixture) TestEncodeWithSignature() {
-	encoder := NewEncoder(Secret([]byte("secret")), Algorithm("HS256"))
+	encoder := NewEncoder(Secret("id", []byte("secret")), Algorithm("HS256"))
 	token := encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,
 		IsRoot:     true,
 	})
 
-	this.So(token, should.Equal, "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJqb2UiLCJleHAiOjEzMDA4MTkzODAsImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.AnVDMBnOG4Jawuf5G3HjePSk-ux9fVk4UCuXVi6hrA4")
+	this.So(token, should.Equal, "eyJhbGciOiJIUzI1NiIsImtpZCI6ImlkIn0.eyJpc3MiOiJqb2UiLCJleHAiOjEzMDA4MTkzODAsImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.9QCgLcVX1B1qUdpo0EEsWU-cE76YpUv7zGVShEFxzxA")
 }

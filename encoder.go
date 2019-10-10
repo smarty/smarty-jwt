@@ -27,8 +27,9 @@ func Algorithm(algorithm string) EncoderOption {
 		encoder.headers["alg"] = algorithm
 	}
 }
-func Secret(secret []byte) EncoderOption {
+func Secret(id string, secret []byte) EncoderOption {
 	return func(encoder *Encoder) {
+		encoder.headers["kid"] = id
 		encoder.secret = secret
 	}
 }

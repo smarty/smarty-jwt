@@ -19,7 +19,11 @@ type DecoderFixture struct {
 }
 
 func (this *DecoderFixture) Setup() {
-	this.decoder = NewDecoder([]byte("secret"), ParseIssuer, ParseExpiration)
+	this.decoder = NewDecoder(key("secret"), ParseIssuer, ParseExpiration)
+}
+
+func key(id string) []byte {
+	return []byte(id)
 }
 
 func (this *DecoderFixture) TestDecodeWithoutSignature() {
@@ -54,7 +58,7 @@ func (this *DecoderFixture) TestJWTsMustHaveThreeSegmentsToBeDecoded() {
 }
 
 func generateTokenWithGoodSignature(secret []byte) string {
-	encoder := NewEncoder(Algorithm("HS256"), Secret(secret))
+	encoder := NewEncoder(Algorithm("HS256"), Secret("id", secret))
 	return encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,
