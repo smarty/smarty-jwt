@@ -50,11 +50,15 @@ func unmarshalHeader(data string) (header map[string]interface{}, err error) {
 	if err != nil {
 		return nil, MalformedHeaderErr
 	}
-	_ = json.Unmarshal(headerBytes, &header) // TODO test ignored err
-	return header, err
+
+	if json.Unmarshal(headerBytes, &header) != nil {
+		return nil, MalformedHeaderContentErr
+	}
+
+	return header, nil
 }
 func validateSignature(segments []string, secret []byte) error {
-	providedSignature, err := base64.RawURLEncoding.DecodeString(segments[2]) // TODO test ignored err
+	providedSignature, err := base64.RawURLEncoding.DecodeString(segments[2])
 	if err != nil {
 		return MalformedSignatureErr
 	}
