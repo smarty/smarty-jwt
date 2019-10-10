@@ -16,10 +16,6 @@ type Audience interface {
 	SetAudience(...string)
 }
 
-type Scope interface {
-	SetScope(string)
-}
-
 var (
 	SegmentCountErr            = errors.New("a JWT must have three segments separated by period characters")
 	MalformedHeaderErr         = errors.New("the header is malformed")
