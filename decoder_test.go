@@ -105,6 +105,13 @@ func (this *DecoderFixture) TestUnmarshalHeaderFailsWhenJsonIsMalformed() {
 
 	this.So(err, should.Equal, MalformedHeaderContentErr)
 }
+func (this *DecoderFixture) TestUnmarshalPayloadFailsWhenJsonIsMalformed() {
+	token := "eyJhbGciOiJub25lIn0.BAD-PAYLOAD-BUT-GOOD-BASE64."
+
+	err := this.decoder.Decode(token, nil)
+
+	this.So(err, should.Equal, MalformedPayloadContentErr)
+}
 
 type parsedPayload struct {
 	Issuer     string

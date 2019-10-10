@@ -23,7 +23,12 @@ func (this Decoder) Decode(token string, claims interface{}) error {
 		return err
 	}
 
-	this.parseClaims(deserializeClaims(payloadBytes), claims)
+	payload, err := deserializeClaims(payloadBytes)
+	if err != nil {
+		return err
+	}
+
+	this.parseClaims(payload, claims)
 
 	return nil
 }
@@ -76,7 +81,9 @@ func (this Decoder) parseClaims(claimValues map[string]interface{}, claims inter
 	}
 }
 
-func deserializeClaims(payloadBytes []byte) (parsedClaims map[string]interface{}) {
-	_ = json.Unmarshal(payloadBytes, &parsedClaims) // TODO test ignored err
-	return parsedClaims
+func deserializeClaims(payloadBytes []byte) (parsedClaims map[string]interface{}, err error) {
+	if json.Unmarshal(payloadBytes, &parsedClaims) != nil {
+		return nil, MalformedPayloadContentErr
+	}
+	return parsedClaims, nil
 }
