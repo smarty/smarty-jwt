@@ -10,10 +10,10 @@ import (
 
 type Decoder struct {
 	claimCallbacks []ClaimCallback
-	secret         []byte
+	secret         func(id string) []byte
 }
 
-func NewDecoder(secret []byte, claimCallbacks ...ClaimCallback) *Decoder {
+func NewDecoder(secret func(id string) []byte, claimCallbacks ...ClaimCallback) *Decoder {
 	return &Decoder{secret: secret, claimCallbacks: claimCallbacks}
 }
 
@@ -33,7 +33,7 @@ func (this Decoder) Decode(token string, claims interface{}) error {
 	return nil
 }
 
-func parseToken(token string, secret []byte) ([]byte, error) {
+func parseToken(token string, secret func(id string) []byte) ([]byte, error) {
 	segments := strings.Split(token, ".")
 	if len(segments) != 3 {
 		return nil, SegmentCountErr
@@ -43,7 +43,8 @@ func parseToken(token string, secret []byte) ([]byte, error) {
 		return nil, err
 	}
 	if header["alg"] != "none" {
-		err := validateSignature(segments, secret)
+		kid, _ := header["kid"].(string)  //TODO Kid is required  ****************
+		err := validateSignature(segments, secret(kid))
 		if err != nil {
 			return nil, err
 		}

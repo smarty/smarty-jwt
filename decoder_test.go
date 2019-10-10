@@ -19,7 +19,7 @@ type DecoderFixture struct {
 }
 
 func (this *DecoderFixture) Setup() {
-	this.decoder = NewDecoder([]byte("secret"), ParseIssuer, ParseExpiration)
+	this.decoder = NewDecoder(func(id string) []byte {return []byte ("secret")}, ParseIssuer, ParseExpiration)
 }
 
 func (this *DecoderFixture) TestDecodeWithoutSignature() {
