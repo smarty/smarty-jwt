@@ -43,7 +43,10 @@ func parseToken(token string, secret func(id string) []byte) ([]byte, error) {
 		return nil, err
 	}
 	if header["alg"] != "none" {
-		kid, _ := header["kid"].(string)  //TODO Kid is required  ****************
+		kid, ok := header["kid"].(string)
+		if !ok {
+			return nil, MissingKIDErr
+		}
 		err := validateSignature(segments, secret(kid))
 		if err != nil {
 			return nil, err

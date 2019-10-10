@@ -19,7 +19,7 @@ type DecoderFixture struct {
 }
 
 func (this *DecoderFixture) Setup() {
-	this.decoder = NewDecoder(func(id string) []byte {return []byte ("secret")}, ParseIssuer, ParseExpiration)
+	this.decoder = NewDecoder(func(id string) []byte { return []byte("secret") }, ParseIssuer, ParseExpiration)
 }
 
 func (this *DecoderFixture) TestDecodeWithoutSignature() {
@@ -90,7 +90,7 @@ func (this *DecoderFixture) TestDecodeFailsWhenHeaderIsMalformed() {
 }
 
 func (this *DecoderFixture) TestDecodeFailsWhenSignatureIsMalformed() {
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ." +
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImlkIn0.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ." +
 		"********* BAD SIGNATURE ********"
 
 	err := this.decoder.Decode(token, nil)
@@ -111,6 +111,14 @@ func (this *DecoderFixture) TestUnmarshalPayloadFailsWhenJsonIsMalformed() {
 	err := this.decoder.Decode(token, nil)
 
 	this.So(err, should.Equal, MalformedPayloadContentErr)
+}
+func (this *DecoderFixture) TestKIDIsRequiredForSignatureValidation() {
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ."
+
+	err := this.decoder.Decode(token, nil)
+
+	this.So(err, should.Equal, MissingKIDErr)
+
 }
 
 type parsedPayload struct {

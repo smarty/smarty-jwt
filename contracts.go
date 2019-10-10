@@ -22,4 +22,5 @@ var (
 	MalformedHeaderContentErr  = errors.New("the header content is malformed")
 	MalformedPayloadContentErr = errors.New("the payload content is malformed")
 	MalformedSignatureErr      = errors.New("the signature is malformed")
+	MissingKIDErr              = errors.New("kid is required")
 )
