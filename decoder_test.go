@@ -55,11 +55,12 @@ func (this *DecoderFixture) TestJWTsMustHaveThreeSegmentsToBeDecoded() {
 
 func generateTokenWithGoodSignature(secret []byte) string {
 	encoder := NewEncoder(Algorithm("HS256"), Secret("id", secret))
-	return encoder.Encode(rfcExample{
+	token, _ := encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,
 		IsRoot:     true,
 	})
+	return token
 }
 
 func (this *DecoderFixture) TestDecodeInvalidWellFormedSignature() {

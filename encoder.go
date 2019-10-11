@@ -8,8 +8,9 @@ import (
 )
 
 type Encoder struct {
-	secret  []byte
-	headers headers
+	secret        []byte
+	headers       headers
+	encodedHeader string
 }
 
 func NewEncoder(options ...EncoderOption) *Encoder {
@@ -17,6 +18,7 @@ func NewEncoder(options ...EncoderOption) *Encoder {
 	for _, option := range options {
 		option(encoder)
 	}
+	encoder.encodedHeader = encoder.header()
 	return encoder
 }
 
@@ -40,9 +42,17 @@ func hash(src string, secret []byte) []byte {
 	return h.Sum(nil)
 }
 
-func (this *Encoder) Encode(claims interface{}) (token string) {
-	token += this.header()
-	token += this.payload(claims)
+func (this *Encoder) Encode(claims interface{}) (token string, err error) {
+	serialized, err := json.Marshal(claims)
+	if err != nil {
+		return "", err
+	}
+	return this.composeToken(serialized), nil
+}
+
+func (this *Encoder) composeToken(serialized []byte) (token string) {
+	token += this.encodedHeader
+	token += this.payload(serialized)
 	token += this.signature(token)
 	return token
 }
@@ -50,8 +60,7 @@ func (this *Encoder) header() string {
 	serialized, _ := json.Marshal(this.headers)
 	return this.base64(serialized)
 }
-func (this *Encoder) payload(claims interface{}) string {
-	serialized, _ := json.Marshal(claims) // TODO: circular references in map will return json error
+func (this *Encoder) payload(serialized []byte) string {
 	return "." + this.base64(serialized)
 }
 func (this *Encoder) signature(token string) string {
