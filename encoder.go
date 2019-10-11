@@ -9,11 +9,11 @@ import (
 
 type Encoder struct {
 	secret  []byte
-	headers map[string]string
+	headers headers
 }
 
 func NewEncoder(options ...EncoderOption) *Encoder {
-	encoder := &Encoder{headers: map[string]string{}}
+	encoder := &Encoder{headers: headers{Type: "JWT"}}
 	for _, option := range options {
 		option(encoder)
 	}
@@ -24,12 +24,12 @@ type EncoderOption func(encoder *Encoder)
 
 func Algorithm(algorithm string) EncoderOption {
 	return func(encoder *Encoder) {
-		encoder.headers["alg"] = algorithm
+		encoder.headers.Algorithm = algorithm
 	}
 }
 func Secret(id string, secret []byte) EncoderOption {
 	return func(encoder *Encoder) {
-		encoder.headers["kid"] = id
+		encoder.headers.KeyID = id
 		encoder.secret = secret
 	}
 }
@@ -51,7 +51,7 @@ func (this *Encoder) header() string {
 	return this.base64(serialized)
 }
 func (this *Encoder) payload(claims interface{}) string {
-	serialized, _ := json.Marshal(claims)
+	serialized, _ := json.Marshal(claims) // TODO: circular references in map will return json error
 	return "." + this.base64(serialized)
 }
 func (this *Encoder) signature(token string) string {
@@ -61,7 +61,7 @@ func (this *Encoder) base64(in []byte) string {
 	return base64.RawURLEncoding.EncodeToString(in)
 }
 func (this *Encoder) calculateSignature(token string) []byte {
-	if this.headers["alg"] == "none" {
+	if this.headers.Algorithm == "none" {
 		return nil
 	} else {
 		return hash(token, this.secret)

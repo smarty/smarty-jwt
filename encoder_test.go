@@ -30,7 +30,7 @@ func (this *EncoderFixture) TestEncode() {
 	})
 
 	this.So(token, should.Equal, ""+
-		"eyJhbGciOiJub25lIn0.eyJpc3MiOiJqb2UiLCJleHAiOjEzMDA4MTkzODAsImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.")
+		"eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpc3MiOiJqb2UiLCJleHAiOjEzMDA4MTkzODAsImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.")
 }
 
 func (this *EncoderFixture) TestEncodeWithSignature() {
@@ -41,5 +41,5 @@ func (this *EncoderFixture) TestEncodeWithSignature() {
 		IsRoot:     true,
 	})
 
-	this.So(token, should.Equal, "eyJhbGciOiJIUzI1NiIsImtpZCI6ImlkIn0.eyJpc3MiOiJqb2UiLCJleHAiOjEzMDA4MTkzODAsImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.9QCgLcVX1B1qUdpo0EEsWU-cE76YpUv7zGVShEFxzxA")
+	this.So(token, should.Equal, "eyJhbGciOiJIUzI1NiIsImtpZCI6ImlkIiwidHlwIjoiSldUIn0.eyJpc3MiOiJqb2UiLCJleHAiOjEzMDA4MTkzODAsImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.7TtdM8KDfnEfLolTmhVWlDGw4Bu-3dESXZHAFNIhyD8")
 }

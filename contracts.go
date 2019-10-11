@@ -4,6 +4,12 @@ import "errors"
 
 type ClaimCallback func(claims map[string]interface{}, data interface{})
 
+type headers struct {
+	Algorithm string `json:"alg,omitempty"`
+	KeyID     string `json:"kid,omitempty"`
+	Type      string `json:"typ,omitempty"`
+}
+
 type Expiration interface {
 	SetExpiration(int64)
 }
