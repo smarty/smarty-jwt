@@ -16,14 +16,19 @@ func TestDecoderFixture(t *testing.T) {
 type DecoderFixture struct {
 	*gunit.Fixture
 	decoder *Decoder
+	encoder *Encoder
 }
 
 func (this *DecoderFixture) Setup() {
+	this.encoder = NewEncoder(Algorithm("none"))
 	this.decoder = NewDecoder(func(id string) []byte { return []byte("secret") }, ParseIssuer, ParseExpiration)
 }
 
 func (this *DecoderFixture) TestDecodeWithoutSignature() {
-	token := "eyJhbGciOiJub25lIn0.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ."
+	token, _ := this.encoder.Encode(rfcExample{
+		Issuer:     "joe",
+		Expiration: 1300819380,
+	})
 
 	var claims parsedPayload
 
@@ -58,7 +63,6 @@ func generateTokenWithGoodSignature(secret []byte) string {
 	token, _ := encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,
-		IsRoot:     true,
 	})
 	return token
 }
@@ -83,20 +87,36 @@ func generateTokenWithBadSignature(secret []byte) string {
 }
 
 func (this *DecoderFixture) TestDecodeFailsWhenHeaderIsMalformed() {
-	token := "****** BAD HEADER ******.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ."
+	token := this.encodeTokenWithMalformedHeader()
 
 	err := this.decoder.Decode(token, nil)
 
 	this.So(err, should.Equal, MalformedHeaderErr)
 }
 
+func (this *DecoderFixture) encodeTokenWithMalformedHeader() string {
+	token, _ := this.encoder.Encode(rfcExample{
+		Issuer:     "joe",
+		Expiration: 1300819380,
+	})
+	return "****** BAD HEADER ******" + token[strings.Index(token, "."):]
+}
+
 func (this *DecoderFixture) TestDecodeFailsWhenSignatureIsMalformed() {
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImlkIn0.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ." +
-		"********* BAD SIGNATURE ********"
+	token := this.encodeJWTWithBadSignature()
 
 	err := this.decoder.Decode(token, nil)
 
 	this.So(err, should.Equal, MalformedSignatureErr)
+}
+
+func (this *DecoderFixture) encodeJWTWithBadSignature() string {
+	this.encoder = NewEncoder(Algorithm("HS256"), Secret("kid", nil))
+	token, _ := this.encoder.Encode(rfcExample{
+		Issuer:     "joe",
+		Expiration: 1300819380,
+	})
+	return token[:strings.LastIndex(token, ".")+1] + "********* BAD SIGNATURE ********"
 }
 
 func (this *DecoderFixture) TestUnmarshalHeaderFailsWhenJsonIsMalformed() {
@@ -114,12 +134,20 @@ func (this *DecoderFixture) TestUnmarshalPayloadFailsWhenJsonIsMalformed() {
 	this.So(err, should.Equal, MalformedPayloadContentErr)
 }
 func (this *DecoderFixture) TestKIDIsRequiredForSignatureValidation() {
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ."
+	token := this.encodeTokenWithoutKID()
 
 	err := this.decoder.Decode(token, nil)
 
 	this.So(err, should.Equal, MissingKIDErr)
+}
 
+func (this *DecoderFixture) encodeTokenWithoutKID() string {
+	encoder := NewEncoder(Algorithm("HS256"), Secret("", nil))
+	token, _ := encoder.Encode(rfcExample{
+		Issuer:     "joe",
+		Expiration: 1300819380,
+	})
+	return token
 }
 
 type parsedPayload struct {
