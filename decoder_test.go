@@ -21,7 +21,10 @@ type DecoderFixture struct {
 
 func (this *DecoderFixture) Setup() {
 	this.encoder = NewEncoder(Algorithm("none"))
-	this.decoder = NewDecoder(func(id string) []byte { return []byte("secret") }, ParseIssuer, ParseExpiration)
+	this.decoder = NewDecoder(
+		func(id string) []byte { return []byte("secret") },
+		ParseIssuer, ParseExpiration,
+	)
 }
 
 func (this *DecoderFixture) TestDecodeWithoutSignature() {
@@ -82,7 +85,7 @@ func (this *DecoderFixture) TestDecodeInvalidWellFormedSignature() {
 func generateTokenWithBadSignature(secret []byte) string {
 	token := generateTokenWithGoodSignature(secret)
 	parsedToken := strings.Split(token, ".")
-	parsedToken[2] = base64.RawURLEncoding.EncodeToString(hash("badToken", secret))
+	parsedToken[2] = base64.RawURLEncoding.EncodeToString(hs256("badToken", secret))
 	return strings.Join(parsedToken, ".")
 }
 

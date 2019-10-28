@@ -5,14 +5,18 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"hash"
 	"strings"
 )
 
 type Decoder struct {
 	claimCallbacks []ClaimCallback
 	secret         func(id string) []byte
+	algorithms     map[string]hash.Hash
 }
 
+// TODO: parameter for allowed signing algorithms (from config). Default: HS256
+// TODO: promote hash algorithms to first-class concept/interface.
 func NewDecoder(secret func(id string) []byte, claimCallbacks ...ClaimCallback) *Decoder {
 	return &Decoder{secret: secret, claimCallbacks: claimCallbacks}
 }
@@ -72,7 +76,7 @@ func validateSignature(segments []string, secret []byte) error {
 	if err != nil {
 		return MalformedSignatureErr
 	}
-	computedSignature := hash(segments[0]+"."+segments[1], secret)
+	computedSignature := hs256(segments[0]+"."+segments[1], secret)
 	comparison := subtle.ConstantTimeCompare(providedSignature, computedSignature)
 	if comparison == 1 {
 		return nil

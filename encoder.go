@@ -60,9 +60,9 @@ func (this *Encoder) signature(token string) string {
 	return "." + base64Encode(this.calculateSignature(token))
 }
 func (this *Encoder) calculateSignature(token string) []byte {
-	return hash(token, this.secret)
+	return hs256(token, this.secret)
 }
-func hash(src string, secret []byte) []byte {
+func hs256(src string, secret []byte) []byte {
 	h := hmac.New(sha256.New, secret)
 	h.Write([]byte(src))
 	return h.Sum(nil)
