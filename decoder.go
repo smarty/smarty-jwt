@@ -38,33 +38,34 @@ func parseToken(token string, secret func(id string) []byte) ([]byte, error) {
 	if len(segments) != 3 {
 		return nil, SegmentCountErr
 	}
-	header, err := unmarshalHeader(segments[0])
+	var header headers
+	err := unmarshalHeader(segments[0], &header)
 	if err != nil {
 		return nil, err
 	}
-	if header["alg"] != "none" {
-		kid, ok := header["kid"].(string)
-		if !ok {
+	if header.Algorithm != "none" {
+		if header.KeyID == "" {
 			return nil, MissingKIDErr
 		}
-		err := validateSignature(segments, secret(kid))
+		err := validateSignature(segments, secret(header.KeyID))
 		if err != nil {
 			return nil, err
 		}
 	}
 	return base64Decode(segments[1])
 }
-func unmarshalHeader(data string) (header map[string]interface{}, err error) {
+
+func unmarshalHeader(data string, header *headers) error {
 	headerBytes, err := base64Decode(data)
 	if err != nil {
-		return nil, MalformedHeaderErr
+		return MalformedHeaderErr
 	}
 
-	if json.Unmarshal(headerBytes, &header) != nil {
-		return nil, MalformedHeaderContentErr
+	if json.Unmarshal(headerBytes, header) != nil {
+		return MalformedHeaderContentErr
 	}
 
-	return header, nil
+	return nil
 }
 func validateSignature(segments []string, secret []byte) error {
 	providedSignature, err := base64Decode(segments[2])
