@@ -30,7 +30,7 @@ func (this *DecoderFixture) Validate(claims interface{}) error {
 }
 
 func (this *DecoderFixture) Setup() {
-	this.encoder = NewEncoder(Algorithm("none"))
+	this.encoder = NewEncoder(WithAlgorithm(NoAlgorithm{}))
 	this.decoder = NewDecoder(
 		func(id string) []byte { return []byte("secret") },
 		this)
@@ -71,7 +71,7 @@ func (this *DecoderFixture) TestJWTsMustHaveThreeSegmentsToBeDecoded() {
 }
 
 func (this *DecoderFixture) generateTokenWithGoodSignature(secret []byte) string {
-	encoder := NewEncoder(Algorithm("HS256"), Secret("id", secret))
+	encoder := NewEncoder(WithAlgorithm(HS256{}), WithSecret("id", secret))
 	token, _ := encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: this.expiration,
@@ -123,7 +123,7 @@ func (this *DecoderFixture) TestDecodeFailsWhenSignatureIsMalformed() {
 }
 
 func (this *DecoderFixture) encodeJWTWithBadSignature() string {
-	this.encoder = NewEncoder(Algorithm("HS256"), Secret("kid", nil))
+	this.encoder = NewEncoder(WithAlgorithm(HS256{}), WithSecret("kid", nil))
 	token, _ := this.encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,
@@ -153,7 +153,7 @@ func (this *DecoderFixture) TestKIDIsRequiredForSignatureValidation() {
 	this.So(err, should.Equal, MissingKeyIDErr)
 }
 func (this *DecoderFixture) encodeTokenWithoutKID() string {
-	encoder := NewEncoder(Algorithm("HS256"), Secret("", nil))
+	encoder := NewEncoder(WithAlgorithm(HS256{}), WithSecret("", nil))
 	token, _ := encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,

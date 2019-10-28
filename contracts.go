@@ -23,6 +23,11 @@ type TokenAudience interface {
 	TokenAudience() string
 }
 
+type Algorithm interface {
+	Name() string
+	ComputeHash(value, secret []byte) []byte
+}
+
 var (
 	SegmentCountErr            = errors.New("a JWT must have three segments separated by period characters")
 	MalformedHeaderErr         = errors.New("the header is malformed")

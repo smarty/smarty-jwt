@@ -1,8 +1,6 @@
 package jwt
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 )
@@ -11,6 +9,7 @@ type Encoder struct {
 	secret        []byte
 	headers       headers
 	encodedHeader string
+	algorithm     Algorithm
 }
 
 func NewEncoder(options ...EncoderOption) *Encoder {
@@ -24,12 +23,13 @@ func NewEncoder(options ...EncoderOption) *Encoder {
 
 type EncoderOption func(encoder *Encoder)
 
-func Algorithm(algorithm string) EncoderOption {
-	return func(encoder *Encoder) {
-		encoder.headers.Algorithm = algorithm
+func WithAlgorithm(algorithm Algorithm) EncoderOption {
+	return func(this *Encoder) {
+		this.headers.Algorithm = algorithm.Name()
+		this.algorithm = algorithm
 	}
 }
-func Secret(id string, secret []byte) EncoderOption {
+func WithSecret(id string, secret []byte) EncoderOption {
 	return func(encoder *Encoder) {
 		encoder.headers.KeyID = id
 		encoder.secret = secret
@@ -63,9 +63,7 @@ func (this *Encoder) calculateSignature(token string) []byte {
 	return hs256(token, this.secret)
 }
 func hs256(src string, secret []byte) []byte {
-	h := hmac.New(sha256.New, secret)
-	h.Write([]byte(src))
-	return h.Sum(nil)
+	return HS256{}.ComputeHash([]byte(src), secret)
 }
 func base64Encode(in []byte) string {
 	return base64.RawURLEncoding.EncodeToString(in)
