@@ -12,12 +12,13 @@ import (
 type Decoder struct {
 	secret     func(id string) []byte
 	algorithms map[string]hash.Hash
+	validator  Validator
 }
 
 // TODO: parameter for allowed signing algorithms (from config). Default: HS256
 // TODO: promote hash algorithms to first-class concept/interface.
-func NewDecoder(secret func(id string) []byte) *Decoder {
-	return &Decoder{secret: secret}
+func NewDecoder(secret func(id string) []byte, validator Validator) *Decoder {
+	return &Decoder{secret: secret, validator: validator}
 }
 
 func (this Decoder) Decode(token string, claims interface{}) error {
@@ -26,8 +27,11 @@ func (this Decoder) Decode(token string, claims interface{}) error {
 		return err
 	}
 
-	return deserializeClaims(payloadBytes, claims) // TODO test to ensure object being passed in for claims has the right fields
-	// TODO ask claim if it supports expiration
+	if err = deserializeClaims(payloadBytes, claims); err != nil {
+		return err
+	}
+
+	return this.validator.Validate(claims)
 }
 
 func parseToken(token string, secret func(id string) []byte) ([]byte, error) {

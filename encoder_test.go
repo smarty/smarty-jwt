@@ -9,15 +9,7 @@ import (
 
 type rfcExample struct {
 	Issuer     string `json:"iss"`
-	Expiration int    `json:"exp"`
-}
-
-func (this *rfcExample) SetExpiration(value int64) {
-	this.Expiration = int(value)
-}
-
-func (this *rfcExample) SetIssuer(value string) {
-	this.Issuer = value
+	Expiration int64  `json:"exp"`
 }
 
 func TestEncoderFixture(t *testing.T) {
@@ -43,7 +35,7 @@ func (this *EncoderFixture) TestEncode() {
 }
 
 func (this *EncoderFixture) decodeToken(token string, secret []byte) (decoded rfcExample) {
-	decoder := NewDecoder(func(id string) []byte { return secret })
+	decoder := NewDecoder(func(id string) []byte { return secret }, NewDefaultValidator())
 	_ = decoder.Decode(token, &decoded)
 	return decoded
 }

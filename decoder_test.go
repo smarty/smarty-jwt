@@ -2,8 +2,10 @@ package jwt
 
 import (
 	"encoding/base64"
+	"errors"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
@@ -15,41 +17,49 @@ func TestDecoderFixture(t *testing.T) {
 
 type DecoderFixture struct {
 	*gunit.Fixture
-	decoder *Decoder
-	encoder *Encoder
+	decoder         *Decoder
+	encoder         *Encoder
+	expiration      int64
+	validationErr   error
+	validatedClaims interface{}
+}
+
+func (this *DecoderFixture) Validate(claims interface{}) error {
+	this.validatedClaims = claims
+	return this.validationErr
 }
 
 func (this *DecoderFixture) Setup() {
 	this.encoder = NewEncoder(Algorithm("none"))
 	this.decoder = NewDecoder(
 		func(id string) []byte { return []byte("secret") },
-	)
+		this)
+	this.expiration = time.Now().Add(time.Hour).Unix()
 }
 
 func (this *DecoderFixture) TestDecodeWithoutSignature() {
 	token, _ := this.encoder.Encode(rfcExample{
 		Issuer:     "joe",
-		Expiration: 1300819380,
+		Expiration: this.expiration,
 	})
 
 	var claims parsedPayload
-
 	err := this.decoder.Decode(token, &claims)
 
 	this.So(err, should.BeNil)
 	this.So(claims.Issuer, should.Equal, "joe")
-	this.So(claims.Expiration, should.Equal, 1300819380)
+	this.So(claims.Expiration, should.Equal, this.expiration)
 }
 
 func (this *DecoderFixture) TestDecodeValidSignature() {
 	secret := []byte("secret")
-	token := generateTokenWithGoodSignature(secret)
+	token := this.generateTokenWithGoodSignature(secret)
 
 	var claims parsedPayload
 	err := this.decoder.Decode(token, &claims)
 
 	this.So(err, should.BeNil)
-	this.So(claims.Expiration, should.Equal, 1300819380)
+	this.So(claims.Expiration, should.Equal, this.expiration)
 	this.So(claims.Issuer, should.Equal, "joe")
 }
 
@@ -60,18 +70,18 @@ func (this *DecoderFixture) TestJWTsMustHaveThreeSegmentsToBeDecoded() {
 	this.So(this.decoder.Decode("111.222.333.444", nil), should.Equal, SegmentCountErr) // FUTURE HS384 ?
 }
 
-func generateTokenWithGoodSignature(secret []byte) string {
+func (this *DecoderFixture) generateTokenWithGoodSignature(secret []byte) string {
 	encoder := NewEncoder(Algorithm("HS256"), Secret("id", secret))
 	token, _ := encoder.Encode(rfcExample{
 		Issuer:     "joe",
-		Expiration: 1300819380,
+		Expiration: this.expiration,
 	})
 	return token
 }
 
 func (this *DecoderFixture) TestDecodeInvalidWellFormedSignature() {
 	secret := []byte("secret")
-	token := generateTokenWithBadSignature(secret)
+	token := this.generateTokenWithBadSignature(secret)
 
 	var claims parsedPayload
 	err := this.decoder.Decode(token, &claims)
@@ -81,8 +91,8 @@ func (this *DecoderFixture) TestDecodeInvalidWellFormedSignature() {
 	this.So(claims.Issuer, should.BeBlank)
 }
 
-func generateTokenWithBadSignature(secret []byte) string {
-	token := generateTokenWithGoodSignature(secret)
+func (this *DecoderFixture) generateTokenWithBadSignature(secret []byte) string {
+	token := this.generateTokenWithGoodSignature(secret)
 	parsedToken := strings.Split(token, ".")
 	parsedToken[2] = base64.RawURLEncoding.EncodeToString(hs256("badToken", secret))
 	return strings.Join(parsedToken, ".")
@@ -142,7 +152,6 @@ func (this *DecoderFixture) TestKIDIsRequiredForSignatureValidation() {
 
 	this.So(err, should.Equal, MissingKeyIDErr)
 }
-
 func (this *DecoderFixture) encodeTokenWithoutKID() string {
 	encoder := NewEncoder(Algorithm("HS256"), Secret("", nil))
 	token, _ := encoder.Encode(rfcExample{
@@ -152,15 +161,16 @@ func (this *DecoderFixture) encodeTokenWithoutKID() string {
 	return token
 }
 
+func (this *DecoderFixture) TestValidationResultReturnedAfterDecoding() {
+	this.validationErr = errors.New("Validation Result")
+	token := this.generateTokenWithGoodSignature([]byte("secret"))
+	var parsed parsedPayload
+	err := this.decoder.Decode(token, &parsed)
+	this.So(err, should.Equal, this.validationErr)
+	this.So(this.validatedClaims, should.Equal, &parsed)
+}
+
 type parsedPayload struct {
 	Issuer     string `json:"iss"`
 	Expiration int64  `json:"exp"`
-}
-
-func (this *parsedPayload) SetIssuer(value string) {
-	this.Issuer = value
-}
-
-func (this *parsedPayload) SetExpiration(value int64) {
-	this.Expiration = value
 }

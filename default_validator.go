@@ -41,5 +41,7 @@ func (this DefaultValidator) isCurrent(claim TokenExpiration, hasExpiration bool
 	return !hasExpiration || claim.TokenExpiration().After(this.now())
 }
 
-var TokenExpiredErr = errors.New("the token is expired")
-var InvalidAudienceErr = errors.New("the audience is invalid")
+var (
+	TokenExpiredErr    = errors.New("the token is expired")
+	InvalidAudienceErr = errors.New("the audience is invalid")
+)
