@@ -63,7 +63,7 @@ func (this *EncoderFixture) TestEncodeWithSignature() {
 }
 
 func (this *EncoderFixture) TestEncodingFailsWhenSerializationFails() {
-	encoder := NewEncoder(Algorithm("none"))
+	encoder := NewEncoder(Algorithm("irrelevant"))
 
 	token, err := encoder.Encode(make(chan int))
 

@@ -36,12 +36,6 @@ func Secret(id string, secret []byte) EncoderOption {
 	}
 }
 
-func hash(src string, secret []byte) []byte {
-	h := hmac.New(sha256.New, secret)
-	h.Write([]byte(src))
-	return h.Sum(nil)
-}
-
 func (this *Encoder) Encode(claims interface{}) (token string, err error) {
 	serialized, err := json.Marshal(claims)
 	if err != nil {
@@ -49,7 +43,6 @@ func (this *Encoder) Encode(claims interface{}) (token string, err error) {
 	}
 	return this.composeToken(serialized), nil
 }
-
 func (this *Encoder) composeToken(serialized []byte) (token string) {
 	token += this.encodedHeader
 	token += this.payload(serialized)
@@ -58,21 +51,22 @@ func (this *Encoder) composeToken(serialized []byte) (token string) {
 }
 func (this *Encoder) header() string {
 	serialized, _ := json.Marshal(this.headers)
-	return this.base64(serialized)
+	return base64Encode(serialized)
 }
 func (this *Encoder) payload(serialized []byte) string {
-	return "." + this.base64(serialized)
+	return "." + base64Encode(serialized)
 }
 func (this *Encoder) signature(token string) string {
-	return "." + this.base64(this.calculateSignature(token))
-}
-func (this *Encoder) base64(in []byte) string {
-	return base64.RawURLEncoding.EncodeToString(in)
+	return "." + base64Encode(this.calculateSignature(token))
 }
 func (this *Encoder) calculateSignature(token string) []byte {
-	if this.headers.Algorithm == "none" {
-		return nil
-	} else {
-		return hash(token, this.secret)
-	}
+	return hash(token, this.secret)
+}
+func hash(src string, secret []byte) []byte {
+	h := hmac.New(sha256.New, secret)
+	h.Write([]byte(src))
+	return h.Sum(nil)
+}
+func base64Encode(in []byte) string {
+	return base64.RawURLEncoding.EncodeToString(in)
 }
