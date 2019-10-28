@@ -10,15 +10,14 @@ import (
 )
 
 type Decoder struct {
-	claimCallbacks []ClaimCallback
-	secret         func(id string) []byte
-	algorithms     map[string]hash.Hash
+	secret     func(id string) []byte
+	algorithms map[string]hash.Hash
 }
 
 // TODO: parameter for allowed signing algorithms (from config). Default: HS256
 // TODO: promote hash algorithms to first-class concept/interface.
-func NewDecoder(secret func(id string) []byte, claimCallbacks ...ClaimCallback) *Decoder {
-	return &Decoder{secret: secret, claimCallbacks: claimCallbacks}
+func NewDecoder(secret func(id string) []byte) *Decoder {
+	return &Decoder{secret: secret}
 }
 
 func (this Decoder) Decode(token string, claims interface{}) error {
@@ -27,14 +26,8 @@ func (this Decoder) Decode(token string, claims interface{}) error {
 		return err
 	}
 
-	payload, err := deserializeClaims(payloadBytes)
-	if err != nil {
-		return err
-	}
-
-	this.parseClaims(payload, claims)
-
-	return nil
+	return deserializeClaims(payloadBytes, claims) // TODO test to ensure object being passed in for claims has the right fields
+	// TODO ask claim if it supports expiration
 }
 
 func parseToken(token string, secret func(id string) []byte) ([]byte, error) {
@@ -84,17 +77,11 @@ func validateSignature(segments []string, secret []byte) error {
 	return errors.New("bad signature")
 }
 
-func (this Decoder) parseClaims(claimValues map[string]interface{}, claims interface{}) {
-	for _, callback := range this.claimCallbacks {
-		callback(claimValues, claims)
+func deserializeClaims(payload []byte, claims interface{}) error {
+	if json.Unmarshal(payload, &claims) != nil {
+		return MalformedPayloadContentErr
 	}
-}
-
-func deserializeClaims(payloadBytes []byte) (parsedClaims map[string]interface{}, err error) {
-	if json.Unmarshal(payloadBytes, &parsedClaims) != nil {
-		return nil, MalformedPayloadContentErr
-	}
-	return parsedClaims, nil
+	return nil
 }
 
 func base64Decode(value string) ([]byte, error) {

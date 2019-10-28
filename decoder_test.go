@@ -23,7 +23,6 @@ func (this *DecoderFixture) Setup() {
 	this.encoder = NewEncoder(Algorithm("none"))
 	this.decoder = NewDecoder(
 		func(id string) []byte { return []byte("secret") },
-		ParseIssuer, ParseExpiration,
 	)
 }
 
@@ -154,8 +153,8 @@ func (this *DecoderFixture) encodeTokenWithoutKID() string {
 }
 
 type parsedPayload struct {
-	Issuer     string
-	Expiration int64
+	Issuer     string `json:"iss"`
+	Expiration int64  `json:"exp"`
 }
 
 func (this *parsedPayload) SetIssuer(value string) {

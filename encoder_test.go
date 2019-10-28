@@ -43,7 +43,7 @@ func (this *EncoderFixture) TestEncode() {
 }
 
 func (this *EncoderFixture) decodeToken(token string, secret []byte) (decoded rfcExample) {
-	decoder := NewDecoder(func(id string) []byte { return secret }, ParseExpiration, ParseIssuer)
+	decoder := NewDecoder(func(id string) []byte { return secret })
 	_ = decoder.Decode(token, &decoded)
 	return decoded
 }
