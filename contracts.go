@@ -1,11 +1,26 @@
 package jwt
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 type headers struct {
 	Algorithm string `json:"alg,omitempty"`
 	KeyID     string `json:"kid,omitempty"`
 	Type      string `json:"typ,omitempty"`
+}
+
+type Validator interface {
+	Validate(interface{}) error
+}
+
+type TokenExpiration interface {
+	TokenExpiration() time.Time
+}
+
+type TokenAudience interface {
+	TokenAudience() string
 }
 
 var (
@@ -14,5 +29,5 @@ var (
 	MalformedHeaderContentErr  = errors.New("the header content is malformed")
 	MalformedPayloadContentErr = errors.New("the payload content is malformed")
 	MalformedSignatureErr      = errors.New("the signature is malformed")
-	MissingKIDErr              = errors.New("kid is required")
+	MissingKeyIDErr            = errors.New("the key ID (kid) is required")
 )

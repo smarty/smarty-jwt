@@ -140,7 +140,7 @@ func (this *DecoderFixture) TestKIDIsRequiredForSignatureValidation() {
 
 	err := this.decoder.Decode(token, nil)
 
-	this.So(err, should.Equal, MissingKIDErr)
+	this.So(err, should.Equal, MissingKeyIDErr)
 }
 
 func (this *DecoderFixture) encodeTokenWithoutKID() string {

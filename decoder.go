@@ -42,7 +42,7 @@ func parseToken(token string, secret func(id string) []byte) ([]byte, error) {
 	}
 	if header.Algorithm != "none" {
 		if header.KeyID == "" {
-			return nil, MissingKIDErr
+			return nil, MissingKeyIDErr
 		}
 		err := validateSignature(segments, secret(header.KeyID))
 		if err != nil {
