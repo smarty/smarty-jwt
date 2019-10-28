@@ -52,10 +52,10 @@ func parseToken(token string, secret func(id string) []byte) ([]byte, error) {
 			return nil, err
 		}
 	}
-	return base64.RawURLEncoding.DecodeString(segments[1])
+	return base64Decode(segments[1])
 }
 func unmarshalHeader(data string) (header map[string]interface{}, err error) {
-	headerBytes, err := base64.RawURLEncoding.DecodeString(data)
+	headerBytes, err := base64Decode(data)
 	if err != nil {
 		return nil, MalformedHeaderErr
 	}
@@ -67,7 +67,7 @@ func unmarshalHeader(data string) (header map[string]interface{}, err error) {
 	return header, nil
 }
 func validateSignature(segments []string, secret []byte) error {
-	providedSignature, err := base64.RawURLEncoding.DecodeString(segments[2])
+	providedSignature, err := base64Decode(segments[2])
 	if err != nil {
 		return MalformedSignatureErr
 	}
@@ -90,4 +90,8 @@ func deserializeClaims(payloadBytes []byte) (parsedClaims map[string]interface{}
 		return nil, MalformedPayloadContentErr
 	}
 	return parsedClaims, nil
+}
+
+func base64Decode(value string) ([]byte, error) {
+	return base64.RawURLEncoding.DecodeString(value)
 }
