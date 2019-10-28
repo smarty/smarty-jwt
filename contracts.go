@@ -34,5 +34,6 @@ var (
 	MalformedHeaderContentErr  = errors.New("the header content is malformed")
 	MalformedPayloadContentErr = errors.New("the payload content is malformed")
 	MalformedSignatureErr      = errors.New("the signature is malformed")
-	MissingKeyIDErr            = errors.New("the key ID (kid) is required")
+	UnrecognizedSignatureErr   = errors.New("unrecognized signature")
+	UnrecognizedAlgorithmErr   = errors.New("unrecognized algorithm")
 )

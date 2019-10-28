@@ -13,26 +13,26 @@ type Encoder struct {
 }
 
 func NewEncoder(options ...EncoderOption) *Encoder {
-	encoder := &Encoder{headers: headers{Type: "JWT"}}
+	this := &Encoder{headers: headers{Type: "JWT"}}
 	for _, option := range options {
-		option(encoder)
+		option(this)
 	}
-	encoder.encodedHeader = encoder.header()
-	return encoder
+	this.encodedHeader = this.header()
+	return this
 }
 
 type EncoderOption func(encoder *Encoder)
 
-func WithAlgorithm(algorithm Algorithm) EncoderOption {
+func WithEncoderAlgorithm(algorithm Algorithm) EncoderOption {
 	return func(this *Encoder) {
 		this.headers.Algorithm = algorithm.Name()
 		this.algorithm = algorithm
 	}
 }
-func WithSecret(id string, secret []byte) EncoderOption {
-	return func(encoder *Encoder) {
-		encoder.headers.KeyID = id
-		encoder.secret = secret
+func WithEncoderSecret(id string, secret []byte) EncoderOption {
+	return func(this *Encoder) {
+		this.headers.KeyID = id
+		this.secret = secret
 	}
 }
 

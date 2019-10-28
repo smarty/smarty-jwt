@@ -30,10 +30,12 @@ func (this *DecoderFixture) Validate(claims interface{}) error {
 }
 
 func (this *DecoderFixture) Setup() {
-	this.encoder = NewEncoder(WithAlgorithm(NoAlgorithm{}))
+	this.encoder = NewEncoder(WithEncoderAlgorithm(NoAlgorithm{}))
 	this.decoder = NewDecoder(
 		func(id string) []byte { return []byte("secret") },
-		this)
+		this,
+		WithDecoderAlgorithm(NoAlgorithm{}), WithDecoderAlgorithm(HS256{}),
+	)
 	this.expiration = time.Now().Add(time.Hour).Unix()
 }
 
@@ -71,7 +73,7 @@ func (this *DecoderFixture) TestJWTsMustHaveThreeSegmentsToBeDecoded() {
 }
 
 func (this *DecoderFixture) generateTokenWithGoodSignature(secret []byte) string {
-	encoder := NewEncoder(WithAlgorithm(HS256{}), WithSecret("id", secret))
+	encoder := NewEncoder(WithEncoderAlgorithm(HS256{}), WithEncoderSecret("id", secret))
 	token, _ := encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: this.expiration,
@@ -86,7 +88,7 @@ func (this *DecoderFixture) TestDecodeInvalidWellFormedSignature() {
 	var claims parsedPayload
 	err := this.decoder.Decode(token, &claims)
 
-	this.So(err, should.NotBeNil)
+	this.So(err, should.Equal, UnrecognizedSignatureErr)
 	this.So(claims.Expiration, should.Equal, 0)
 	this.So(claims.Issuer, should.BeBlank)
 }
@@ -123,7 +125,7 @@ func (this *DecoderFixture) TestDecodeFailsWhenSignatureIsMalformed() {
 }
 
 func (this *DecoderFixture) encodeJWTWithBadSignature() string {
-	this.encoder = NewEncoder(WithAlgorithm(HS256{}), WithSecret("kid", nil))
+	this.encoder = NewEncoder(WithEncoderAlgorithm(HS256{}), WithEncoderSecret("kid", nil))
 	token, _ := this.encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,
@@ -145,15 +147,9 @@ func (this *DecoderFixture) TestUnmarshalPayloadFailsWhenJsonIsMalformed() {
 
 	this.So(err, should.Equal, MalformedPayloadContentErr)
 }
-func (this *DecoderFixture) TestKIDIsRequiredForSignatureValidation() {
-	token := this.encodeTokenWithoutKID()
 
-	err := this.decoder.Decode(token, nil)
-
-	this.So(err, should.Equal, MissingKeyIDErr)
-}
 func (this *DecoderFixture) encodeTokenWithoutKID() string {
-	encoder := NewEncoder(WithAlgorithm(HS256{}), WithSecret("", nil))
+	encoder := NewEncoder(WithEncoderAlgorithm(HS256{}), WithEncoderSecret("", nil))
 	token, _ := encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,
@@ -168,6 +164,19 @@ func (this *DecoderFixture) TestValidationResultReturnedAfterDecoding() {
 	err := this.decoder.Decode(token, &parsed)
 	this.So(err, should.Equal, this.validationErr)
 	this.So(this.validatedClaims, should.Equal, &parsed)
+}
+
+func (this *DecoderFixture) TestValidationFailsForTokenWithUnexpectedAlgorithm() {
+	token := this.generateTokenWithHS512Algorithm()
+	var parsed parsedPayload
+	err := this.decoder.Decode(token, &parsed)
+	this.So(err, should.NotBeNil)
+}
+
+func (this *DecoderFixture) generateTokenWithHS512Algorithm() string {
+	encoder := NewEncoder(WithEncoderAlgorithm(HS512{}), WithEncoderSecret("id", []byte("secret")))
+	token, _ := encoder.Encode(rfcExample{})
+	return token
 }
 
 type parsedPayload struct {

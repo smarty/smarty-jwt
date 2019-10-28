@@ -21,7 +21,7 @@ type EncoderFixture struct {
 }
 
 func (this *EncoderFixture) TestEncode() {
-	encoder := NewEncoder(WithAlgorithm(NoAlgorithm{}))
+	encoder := NewEncoder(WithEncoderAlgorithm(NoAlgorithm{}))
 
 	original := rfcExample{
 		Issuer:     "joe",
@@ -35,13 +35,15 @@ func (this *EncoderFixture) TestEncode() {
 }
 
 func (this *EncoderFixture) decodeToken(token string, secret []byte) (decoded rfcExample) {
-	decoder := NewDecoder(func(id string) []byte { return secret }, NewDefaultValidator())
+	decoder := NewDecoder(func(id string) []byte { return secret }, NewDefaultValidator(),
+		WithDecoderAlgorithm(NoAlgorithm{}), WithDecoderAlgorithm(HS256{}),
+	)
 	_ = decoder.Decode(token, &decoded)
 	return decoded
 }
 
 func (this *EncoderFixture) TestEncodeWithSignature() {
-	encoder := NewEncoder(WithSecret("id", []byte("secret")), WithAlgorithm(HS256{}))
+	encoder := NewEncoder(WithEncoderSecret("id", []byte("secret")), WithEncoderAlgorithm(HS256{}))
 
 	original := rfcExample{
 		Issuer:     "joe",
@@ -55,7 +57,7 @@ func (this *EncoderFixture) TestEncodeWithSignature() {
 }
 
 func (this *EncoderFixture) TestEncodingFailsWhenSerializationFails() {
-	encoder := NewEncoder(WithAlgorithm(NoAlgorithm{}))
+	encoder := NewEncoder(WithEncoderAlgorithm(NoAlgorithm{}))
 
 	token, err := encoder.Encode(make(chan int))
 

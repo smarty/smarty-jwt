@@ -4,25 +4,34 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
-	"hash"
 	"strings"
 )
 
 type Decoder struct {
 	secret     func(id string) []byte
-	algorithms map[string]hash.Hash
+	algorithms map[string]Algorithm
 	validator  Validator
 }
 
-// TODO: parameter for allowed signing algorithms (from config). Default: HS256
-// TODO: promote hash algorithms to first-class concept/interface.
-func NewDecoder(secret func(id string) []byte, validator Validator) *Decoder {
-	return &Decoder{secret: secret, validator: validator}
+func NewDecoder(secret func(id string) []byte, validator Validator, options ...DecoderOption) *Decoder {
+	algorithms := map[string]Algorithm{HS256{}.Name(): HS256{}}
+	decoder := &Decoder{secret: secret, validator: validator, algorithms: algorithms}
+	for _, option := range options {
+		option(decoder)
+	}
+	return decoder
+}
+
+type DecoderOption func(*Decoder)
+
+func WithDecoderAlgorithm(algorithm Algorithm) DecoderOption {
+	return func(this *Decoder) {
+		this.algorithms[algorithm.Name()] = algorithm
+	}
 }
 
 func (this Decoder) Decode(token string, claims interface{}) error {
-	payloadBytes, err := parseToken(token, this.secret)
+	payloadBytes, err := this.parseToken(token)
 	if err != nil {
 		return err
 	}
@@ -34,24 +43,17 @@ func (this Decoder) Decode(token string, claims interface{}) error {
 	return this.validator.Validate(claims)
 }
 
-func parseToken(token string, secret func(id string) []byte) ([]byte, error) {
+func (this *Decoder) parseToken(token string) ([]byte, error) {
 	segments := strings.Split(token, ".")
 	if len(segments) != 3 {
 		return nil, SegmentCountErr
 	}
 	var header headers
-	err := unmarshalHeader(segments[0], &header)
-	if err != nil {
+	if err := unmarshalHeader(segments[0], &header); err != nil {
 		return nil, err
 	}
-	if header.Algorithm != "none" {
-		if header.KeyID == "" {
-			return nil, MissingKeyIDErr
-		}
-		err := validateSignature(segments, secret(header.KeyID))
-		if err != nil {
-			return nil, err
-		}
+	if err := this.validateSignature(header, segments); err != nil {
+		return nil, err
 	}
 	return base64Decode(segments[1])
 }
@@ -68,17 +70,23 @@ func unmarshalHeader(data string, header *headers) error {
 
 	return nil
 }
-func validateSignature(segments []string, secret []byte) error {
+func (this *Decoder) validateSignature(header headers, segments []string) error {
+	algorithm, found := this.algorithms[header.Algorithm]
+	if found && header.Algorithm == (NoAlgorithm{}).Name() {
+		return nil // TODO Delete me
+	}
+	if !found {
+		return UnrecognizedAlgorithmErr
+	}
 	providedSignature, err := base64Decode(segments[2])
 	if err != nil {
 		return MalformedSignatureErr
 	}
-	computedSignature := hs256(segments[0]+"."+segments[1], secret)
-	comparison := subtle.ConstantTimeCompare(providedSignature, computedSignature)
-	if comparison == 1 {
-		return nil
+	computedSignature := algorithm.ComputeHash([]byte(segments[0]+"."+segments[1]), this.secret(header.KeyID))
+	if subtle.ConstantTimeCompare(providedSignature, computedSignature) != 1 {
+		return UnrecognizedSignatureErr
 	}
-	return errors.New("bad signature")
+	return nil
 }
 
 func deserializeClaims(payload []byte, claims interface{}) error {
