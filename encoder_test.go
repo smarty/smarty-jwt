@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"testing"
+	"time"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
@@ -40,7 +41,9 @@ func (this *EncoderFixture) assertNoSignature(token string) bool {
 }
 
 func (this *EncoderFixture) decodeToken(token string, secret []byte) (decoded rfcExample) {
-	decoder := NewDecoder(func(id string) []byte { return secret }, NewDefaultValidator(),
+	decoder := NewDecoder(
+		WithValidator(NewDefaultValidator()),
+		WithSecretCallback(func(id string) []byte { return secret }),
 		WithDecoderAlgorithm(NoAlgorithm{}), WithDecoderAlgorithm(HS256{}),
 	)
 	_ = decoder.Decode(token, &decoded)
@@ -68,4 +71,19 @@ func (this *EncoderFixture) TestEncodingFailsWhenSerializationFails() {
 
 	this.So(err, should.NotBeNil)
 	this.So(token, should.BeBlank)
+}
+
+func (this *EncoderFixture) TestDefaultOptions() {
+	encoder := NewEncoder()
+	defaultEncoder := NewEncoder(WithEncoderAlgorithm(NoAlgorithm{}), WithEncoderSecret("", nil))
+
+	data := rfcExample{
+		Issuer:     "test",
+		Expiration: time.Now().Add(time.Hour).Unix(),
+	}
+
+	expected, _ := defaultEncoder.Encode(data)
+	actual, _ := encoder.Encode(data)
+
+	this.So(actual, should.Equal, expected)
 }

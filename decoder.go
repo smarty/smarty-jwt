@@ -13,13 +13,36 @@ type Decoder struct {
 	validator  Validator
 }
 
-func NewDecoder(secret func(id string) []byte, validator Validator, options ...DecoderOption) *Decoder {
-	algorithms := map[string]Algorithm{HS256{}.Name(): HS256{}}
-	decoder := &Decoder{secret: secret, validator: validator, algorithms: algorithms}
+func NewDecoder(options ...DecoderOption) *Decoder {
+	this := &Decoder{algorithms: map[string]Algorithm{}}
+	this.setOptions(options)
+	this.setDefaultOptions()
+	return this
+}
+func (this *Decoder) setOptions(options []DecoderOption) {
 	for _, option := range options {
-		option(decoder)
+		option(this)
 	}
-	return decoder
+}
+func (this *Decoder) setDefaultOptions() {
+	this.setDefaultValidator()
+	this.setDefaultSecretCallback()
+	this.setDefaultAlgorithm()
+}
+func (this *Decoder) setDefaultAlgorithm() {
+	if len(this.algorithms) == 0 {
+		WithDecoderAlgorithm(HS256{})(this)
+	}
+}
+func (this *Decoder) setDefaultSecretCallback() {
+	if this.secret == nil {
+		WithSecretCallback(noSecret)(this)
+	}
+}
+func (this *Decoder) setDefaultValidator() {
+	if this.validator == nil {
+		WithValidator(NewDefaultValidator())(this)
+	}
 }
 
 type DecoderOption func(*Decoder)
@@ -27,6 +50,16 @@ type DecoderOption func(*Decoder)
 func WithDecoderAlgorithm(algorithm Algorithm) DecoderOption {
 	return func(this *Decoder) {
 		this.algorithms[algorithm.Name()] = algorithm
+	}
+}
+func WithSecretCallback(callback func(id string) []byte) DecoderOption {
+	return func(this *Decoder) {
+		this.secret = callback
+	}
+}
+func WithValidator(validator Validator) DecoderOption {
+	return func(this *Decoder) {
+		this.validator = validator
 	}
 }
 
@@ -42,7 +75,6 @@ func (this Decoder) Decode(token string, claims interface{}) error {
 
 	return this.validator.Validate(claims)
 }
-
 func (this *Decoder) parseToken(token string) ([]byte, error) {
 	segments := strings.Split(token, ".")
 	if len(segments) != 3 {
@@ -70,6 +102,7 @@ func unmarshalHeader(data string, header *headers) error {
 
 	return nil
 }
+
 func (this *Decoder) validateSignature(header headers, segments []string) error {
 	algorithm, found := this.algorithms[header.Algorithm]
 	if !found {
@@ -95,4 +128,8 @@ func deserializeClaims(payload []byte, claims interface{}) error {
 
 func base64Decode(value string) ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(value)
+}
+
+func noSecret(id string) []byte {
+	return nil
 }

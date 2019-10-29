@@ -32,8 +32,8 @@ func (this *DecoderFixture) Validate(claims interface{}) error {
 func (this *DecoderFixture) Setup() {
 	this.encoder = NewEncoder(WithEncoderAlgorithm(NoAlgorithm{}))
 	this.decoder = NewDecoder(
-		func(id string) []byte { return []byte("secret") },
-		this,
+		WithValidator(this),
+		WithSecretCallback(func(id string) []byte { return []byte("secret") }),
 		WithDecoderAlgorithm(NoAlgorithm{}), WithDecoderAlgorithm(HS256{}),
 	)
 	this.expiration = time.Now().Add(time.Hour).Unix()
@@ -177,6 +177,25 @@ func (this *DecoderFixture) generateTokenWithHS512Algorithm() string {
 	encoder := NewEncoder(WithEncoderAlgorithm(HS512{}), WithEncoderSecret("id", []byte("secret")))
 	token, _ := encoder.Encode(rfcExample{})
 	return token
+}
+func (this *DecoderFixture) TestDefaultValues() {
+	this.decoder = NewDecoder()
+	defaultDecoder := NewDecoder(
+		WithDecoderAlgorithm(HS256{}),
+		WithValidator(NewDefaultValidator()),
+		WithSecretCallback(noSecret),
+	)
+
+	token, _ := this.encoder.Encode(rfcExample{
+		Issuer:     "test",
+		Expiration: time.Now().Add(time.Hour).Unix(),
+	})
+	var actual rfcExample
+	_ = this.decoder.Decode(token, &actual)
+	var expected rfcExample
+	_ = defaultDecoder.Decode(token, &expected)
+
+	this.So(actual, should.Resemble, expected)
 }
 
 type parsedPayload struct {

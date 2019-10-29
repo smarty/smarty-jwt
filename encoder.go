@@ -14,11 +14,20 @@ type Encoder struct {
 
 func NewEncoder(options ...EncoderOption) *Encoder {
 	this := &Encoder{headers: headers{Type: "JWT"}}
+	this.setOptions(options)
+	this.setDefaultAlgorithm()
+	this.encodedHeader = this.header()
+	return this
+}
+func (this *Encoder) setOptions(options []EncoderOption) {
 	for _, option := range options {
 		option(this)
 	}
-	this.encodedHeader = this.header()
-	return this
+}
+func (this *Encoder) setDefaultAlgorithm() {
+	if this.algorithm == nil {
+		WithEncoderAlgorithm(NoAlgorithm{})(this)
+	}
 }
 
 type EncoderOption func(encoder *Encoder)
