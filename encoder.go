@@ -60,10 +60,7 @@ func (this *Encoder) signature(token string) string {
 	return "." + base64Encode(this.calculateSignature(token))
 }
 func (this *Encoder) calculateSignature(token string) []byte {
-	return hs256(token, this.secret)
-}
-func hs256(src string, secret []byte) []byte {
-	return HS256{}.ComputeHash([]byte(src), secret)
+	return this.algorithm.ComputeHash([]byte(token), this.secret)
 }
 func base64Encode(in []byte) string {
 	return base64.RawURLEncoding.EncodeToString(in)

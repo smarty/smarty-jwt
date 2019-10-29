@@ -72,9 +72,6 @@ func unmarshalHeader(data string, header *headers) error {
 }
 func (this *Decoder) validateSignature(header headers, segments []string) error {
 	algorithm, found := this.algorithms[header.Algorithm]
-	if found && header.Algorithm == (NoAlgorithm{}).Name() {
-		return nil // TODO Delete me
-	}
 	if !found {
 		return UnrecognizedAlgorithmErr
 	}

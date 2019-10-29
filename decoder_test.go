@@ -96,7 +96,7 @@ func (this *DecoderFixture) TestDecodeInvalidWellFormedSignature() {
 func (this *DecoderFixture) generateTokenWithBadSignature(secret []byte) string {
 	token := this.generateTokenWithGoodSignature(secret)
 	parsedToken := strings.Split(token, ".")
-	parsedToken[2] = base64.RawURLEncoding.EncodeToString(hs256("badToken", secret))
+	parsedToken[2] = base64.RawURLEncoding.EncodeToString(HS256{}.ComputeHash([]byte("badToken"), secret))
 	return strings.Join(parsedToken, ".")
 }
 

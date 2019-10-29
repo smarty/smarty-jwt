@@ -31,7 +31,12 @@ func (this *EncoderFixture) TestEncode() {
 	token, err := encoder.Encode(original)
 
 	this.So(err, should.BeNil)
+	this.assertNoSignature(token)
 	this.So(this.decodeToken(token, nil), should.Resemble, original)
+}
+
+func (this *EncoderFixture) assertNoSignature(token string) bool {
+	return this.So(token, should.EndWith, ".")
 }
 
 func (this *EncoderFixture) decodeToken(token string, secret []byte) (decoded rfcExample) {
