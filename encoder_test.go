@@ -22,7 +22,7 @@ type EncoderFixture struct {
 }
 
 func (this *EncoderFixture) TestEncode() {
-	encoder := NewEncoder(WithEncodingAlgorithm(NoAlgorithm{}))
+	encoder := NewEncoder(WithEncodingAlgorithm(HS256{}))
 
 	original := rfcExample{
 		Issuer:     "joe",
@@ -32,12 +32,12 @@ func (this *EncoderFixture) TestEncode() {
 	token, err := encoder.Encode(original)
 
 	this.So(err, should.BeNil)
-	this.assertNoSignature(token)
+	this.assertSignature(token)
 	this.So(this.decodeToken(token, nil), should.Resemble, original)
 }
 
-func (this *EncoderFixture) assertNoSignature(token string) bool {
-	return this.So(token, should.EndWith, ".")
+func (this *EncoderFixture) assertSignature(token string) bool {
+	return this.So(token, should.NotEndWith, ".")
 }
 
 func (this *EncoderFixture) decodeToken(token string, secret []byte) (decoded rfcExample) {
@@ -75,7 +75,7 @@ func (this *EncoderFixture) TestEncodingFailsWhenSerializationFails() {
 
 func (this *EncoderFixture) TestDefaultOptions() {
 	encoder := NewEncoder()
-	defaultEncoder := NewEncoder(WithEncodingAlgorithm(NoAlgorithm{}), WithEncodingSecret("", nil))
+	defaultEncoder := NewEncoder(WithEncodingAlgorithm(HS256{}), WithEncodingSecret("", nil))
 
 	data := rfcExample{
 		Issuer:     "test",

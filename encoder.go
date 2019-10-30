@@ -26,7 +26,7 @@ func (this *Encoder) setOptions(options []EncoderOption) {
 }
 func (this *Encoder) setDefaultAlgorithm() {
 	if this.algorithm == nil {
-		WithEncodingAlgorithm(NoAlgorithm{})(this)
+		WithEncodingAlgorithm(HS256{})(this)
 	}
 }
 
