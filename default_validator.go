@@ -12,27 +12,29 @@ type DefaultValidator struct {
 
 func NewDefaultValidator(audiences ...string) DefaultValidator {
 	allowed := make(map[string]struct{}, len(audiences))
-	for _, aud := range audiences {
-		allowed[aud] = struct{}{}
+	for _, audience := range audiences {
+		allowed[audience] = struct{}{}
 	}
 	return DefaultValidator{now: time.Now, audiences: allowed}
 }
 
 func (this DefaultValidator) Validate(claim interface{}) error {
-	if exp, ok := claim.(TokenExpiration); !this.isCurrent(exp, ok) {
+	if expiration, ok := claim.(TokenExpiration); !this.isCurrent(expiration, ok) {
 		return TokenExpiredErr
 	}
-	if aud, ok := claim.(TokenAudience); !this.hasCorrectAudiences(aud, ok) {
+
+	if audience, ok := claim.(TokenAudience); !this.hasAllowedAudience(audience, ok) {
 		return InvalidAudienceErr
 	}
 
 	return nil
 }
 
-func (this DefaultValidator) hasCorrectAudiences(claim TokenAudience, hasAudience bool) bool {
+func (this DefaultValidator) hasAllowedAudience(claim TokenAudience, hasAudience bool) bool {
 	if !hasAudience {
 		return true
 	}
+
 	_, ok := this.audiences[claim.TokenAudience()]
 	return ok
 }
