@@ -26,22 +26,7 @@ func (this *Encoder) setOptions(options []EncoderOption) {
 }
 func (this *Encoder) setDefaultAlgorithm() {
 	if this.algorithm == nil {
-		WithEncoderAlgorithm(NoAlgorithm{})(this)
-	}
-}
-
-type EncoderOption func(encoder *Encoder)
-
-func WithEncoderAlgorithm(algorithm Algorithm) EncoderOption {
-	return func(this *Encoder) {
-		this.headers.Algorithm = algorithm.Name()
-		this.algorithm = algorithm
-	}
-}
-func WithEncoderSecret(id string, secret []byte) EncoderOption {
-	return func(this *Encoder) {
-		this.headers.KeyID = id
-		this.secret = secret
+		WithEncodingAlgorithm(NoAlgorithm{})(this)
 	}
 }
 

@@ -30,11 +30,11 @@ func (this *DecoderFixture) Validate(claims interface{}) error {
 }
 
 func (this *DecoderFixture) Setup() {
-	this.encoder = NewEncoder(WithEncoderAlgorithm(NoAlgorithm{}))
+	this.encoder = NewEncoder(WithEncodingAlgorithm(NoAlgorithm{}))
 	this.decoder = NewDecoder(
-		WithValidator(this),
-		WithSecretCallback(func(id string) []byte { return []byte("secret") }),
-		WithDecoderAlgorithm(NoAlgorithm{}), WithDecoderAlgorithm(HS256{}),
+		WithDecodingValidator(this),
+		WithDecodingSecrets(func(id string) []byte { return []byte("secret") }),
+		WithDecodingAlgorithm(NoAlgorithm{}), WithDecodingAlgorithm(HS256{}),
 	)
 	this.expiration = time.Now().Add(time.Hour).Unix()
 }
@@ -73,7 +73,7 @@ func (this *DecoderFixture) TestJWTsMustHaveThreeSegmentsToBeDecoded() {
 }
 
 func (this *DecoderFixture) generateTokenWithGoodSignature(secret []byte) string {
-	encoder := NewEncoder(WithEncoderAlgorithm(HS256{}), WithEncoderSecret("id", secret))
+	encoder := NewEncoder(WithEncodingAlgorithm(HS256{}), WithEncodingSecret("id", secret))
 	token, _ := encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: this.expiration,
@@ -125,7 +125,7 @@ func (this *DecoderFixture) TestDecodeFailsWhenSignatureIsMalformed() {
 }
 
 func (this *DecoderFixture) encodeJWTWithBadSignature() string {
-	this.encoder = NewEncoder(WithEncoderAlgorithm(HS256{}), WithEncoderSecret("kid", nil))
+	this.encoder = NewEncoder(WithEncodingAlgorithm(HS256{}), WithEncodingSecret("kid", nil))
 	token, _ := this.encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,
@@ -149,7 +149,7 @@ func (this *DecoderFixture) TestUnmarshalPayloadFailsWhenJsonIsMalformed() {
 }
 
 func (this *DecoderFixture) encodeTokenWithoutKID() string {
-	encoder := NewEncoder(WithEncoderAlgorithm(HS256{}), WithEncoderSecret("", nil))
+	encoder := NewEncoder(WithEncodingAlgorithm(HS256{}), WithEncodingSecret("", nil))
 	token, _ := encoder.Encode(rfcExample{
 		Issuer:     "joe",
 		Expiration: 1300819380,
@@ -174,16 +174,16 @@ func (this *DecoderFixture) TestValidationFailsForTokenWithUnexpectedAlgorithm()
 }
 
 func (this *DecoderFixture) generateTokenWithHS512Algorithm() string {
-	encoder := NewEncoder(WithEncoderAlgorithm(HS512{}), WithEncoderSecret("id", []byte("secret")))
+	encoder := NewEncoder(WithEncodingAlgorithm(HS512{}), WithEncodingSecret("id", []byte("secret")))
 	token, _ := encoder.Encode(rfcExample{})
 	return token
 }
 func (this *DecoderFixture) TestDefaultValues() {
 	this.decoder = NewDecoder()
 	defaultDecoder := NewDecoder(
-		WithDecoderAlgorithm(HS256{}),
-		WithValidator(NewDefaultValidator()),
-		WithSecretCallback(noSecret),
+		WithDecodingAlgorithm(HS256{}),
+		WithDecodingValidator(NewDefaultValidator()),
+		WithDecodingSecrets(noSecret),
 	)
 
 	token, _ := this.encoder.Encode(rfcExample{

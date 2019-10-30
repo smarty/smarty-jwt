@@ -31,35 +31,17 @@ func (this *Decoder) setDefaultOptions() {
 }
 func (this *Decoder) setDefaultAlgorithm() {
 	if len(this.algorithms) == 0 {
-		WithDecoderAlgorithm(HS256{})(this)
+		WithDecodingAlgorithm(HS256{})(this)
 	}
 }
 func (this *Decoder) setDefaultSecretCallback() {
 	if this.secret == nil {
-		WithSecretCallback(noSecret)(this)
+		WithDecodingSecrets(noSecret)(this)
 	}
 }
 func (this *Decoder) setDefaultValidator() {
 	if this.validator == nil {
-		WithValidator(NewDefaultValidator())(this)
-	}
-}
-
-type DecoderOption func(*Decoder)
-
-func WithDecoderAlgorithm(algorithm Algorithm) DecoderOption {
-	return func(this *Decoder) {
-		this.algorithms[algorithm.Name()] = algorithm
-	}
-}
-func WithSecretCallback(callback func(id string) []byte) DecoderOption {
-	return func(this *Decoder) {
-		this.secret = callback
-	}
-}
-func WithValidator(validator Validator) DecoderOption {
-	return func(this *Decoder) {
-		this.validator = validator
+		WithDecodingValidator(NewDefaultValidator())(this)
 	}
 }
 
@@ -128,8 +110,4 @@ func deserializeClaims(payload []byte, claims interface{}) error {
 
 func base64Decode(value string) ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(value)
-}
-
-func noSecret(id string) []byte {
-	return nil
 }
