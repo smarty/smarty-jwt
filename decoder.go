@@ -10,7 +10,7 @@ import (
 type Decoder struct {
 	secret     func(id string) []byte
 	algorithms map[string]Algorithm
-	validator  Validator
+	validators []Validator
 }
 
 func NewDecoder(options ...DecoderOption) *Decoder {
@@ -40,7 +40,7 @@ func (this *Decoder) setDefaultSecretCallback() {
 	}
 }
 func (this *Decoder) setDefaultValidator() {
-	if this.validator == nil {
+	if len(this.validators) == 0 {
 		WithDecodingValidator(NewDefaultValidator())(this)
 	}
 }
@@ -55,7 +55,16 @@ func (this Decoder) Decode(token string, claims interface{}) error {
 		return err
 	}
 
-	return this.validator.Validate(claims)
+	return this.validateClaims(claims)
+}
+
+func (this Decoder) validateClaims(claims interface{}) error {
+	for _, validator := range this.validators {
+		if err := validator.Validate(claims); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 func (this *Decoder) parseToken(token string) ([]byte, error) {
 	segments := strings.Split(token, ".")

@@ -202,3 +202,35 @@ type parsedPayload struct {
 	Issuer     string `json:"iss"`
 	Expiration int64  `json:"exp"`
 }
+
+func (this *DecoderFixture) TestCustomValidator() {
+	customValidator := NewCustomValidator()
+	customValidator.err = errors.New("error")
+	this.decoder = NewDecoder(
+		WithDecodingAlgorithm(NoAlgorithm{}),
+		WithDecodingValidator(customValidator),
+		WithDecodingValidator(NewDefaultValidator()),
+	)
+
+	token, _ := this.encoder.Encode(rfcExample{
+		Issuer:     "test",
+		Expiration: time.Now().Add(time.Hour).Unix(),
+	})
+
+	var decoded rfcExample
+	err := this.decoder.Decode(token, &decoded)
+
+	this.So(err, should.Equal, customValidator.err)
+}
+
+type CustomValidator struct {
+	err error
+}
+
+func (this *CustomValidator) Validate(claim interface{}) error {
+	return this.err
+}
+
+func NewCustomValidator() *CustomValidator {
+	return &CustomValidator{}
+}

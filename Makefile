@@ -8,4 +8,8 @@ compile:
 
 build: test compile
 
+tcr:
+	go fmt ./...
+	go test ./...
+
 .PHONY: test compile build

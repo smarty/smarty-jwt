@@ -14,7 +14,7 @@ func WithDecodingSecrets(callback func(id string) (secret []byte)) DecoderOption
 }
 func WithDecodingValidator(validator Validator) DecoderOption {
 	return func(this *Decoder) {
-		this.validator = validator
+		this.validators = append(this.validators, validator)
 	}
 }
 
