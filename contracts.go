@@ -12,7 +12,7 @@ type headers struct {
 }
 
 type Validator interface {
-	Validate(interface{}) error
+	Validate(claims interface{}) error
 }
 
 type TokenExpiration interface {
