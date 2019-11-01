@@ -22,7 +22,7 @@ type EncoderFixture struct {
 }
 
 func (this *EncoderFixture) TestEncode() {
-	encoder := NewEncoder(WithEncodingAlgorithm(HS256{}))
+	encoder := NewEncoder(WithNamedEncodingAlgorithm("HS384"))
 
 	original := rfcExample{
 		Issuer:     "joe",
@@ -44,7 +44,7 @@ func (this *EncoderFixture) decodeToken(token string, secret []byte) (decoded rf
 	decoder := NewDecoder(
 		WithDecodingValidator(NewDefaultValidator()),
 		WithDecodingSecrets(func(id string) []byte { return secret }),
-		WithDecodingAlgorithm(NoAlgorithm{}), WithDecodingAlgorithm(HS256{}),
+		WithNamedDecodingAlgorithms("none", "HS256", "HS384"),
 	)
 	_ = decoder.Decode(token, &decoded)
 	return decoded
@@ -65,7 +65,7 @@ func (this *EncoderFixture) TestEncodeWithSignature() {
 }
 
 func (this *EncoderFixture) TestEncodingFailsWhenSerializationFails() {
-	encoder := NewEncoder(WithEncodingAlgorithm(NoAlgorithm{}))
+	encoder := NewEncoder(WithNamedEncodingAlgorithm("none"))
 
 	token, err := encoder.Encode(make(chan int))
 

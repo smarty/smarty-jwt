@@ -20,6 +20,15 @@ func (this HS256) ComputeHash(value, secret []byte) []byte {
 	return h.Sum(nil)
 }
 
+type HS384 struct{}
+
+func (this HS384) Name() string { return "HS384" }
+func (this HS384) ComputeHash(value, secret []byte) []byte {
+	h := hmac.New(sha512.New384, secret)
+	h.Write(value)
+	return h.Sum(nil)
+}
+
 type HS512 struct{}
 
 func (this HS512) Name() string { return "HS512" }

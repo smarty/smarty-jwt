@@ -9,6 +9,7 @@ compile:
 build: test compile
 
 tcr:
+	go mod tidy
 	go fmt ./...
 	go test ./...
 

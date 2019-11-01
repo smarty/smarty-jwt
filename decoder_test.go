@@ -34,7 +34,7 @@ func (this *DecoderFixture) Setup() {
 	this.decoder = NewDecoder(
 		WithDecodingValidator(this),
 		WithDecodingSecrets(func(id string) []byte { return []byte("secret") }),
-		WithDecodingAlgorithm(NoAlgorithm{}), WithDecodingAlgorithm(HS256{}),
+		WithNamedDecodingAlgorithms("none", "HS256"),
 	)
 	this.expiration = time.Now().Add(time.Hour).Unix()
 }
