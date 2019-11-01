@@ -24,7 +24,7 @@ func (this *DefaultValidatorFixture) Setup() {
 
 func (this *DefaultValidatorFixture) TestFutureExpirationValid() {
 	future := time.Now().Add(time.Hour)
-	claim := DefaultClaims{Expiration: future.Unix(), Audience: "smarty"}
+	claim := StandardClaims{Expiration: future.Unix(), Audience: "smarty"}
 
 	err := this.validator.Validate(claim)
 
@@ -39,7 +39,7 @@ func (this *DefaultValidatorFixture) TestExpirationNotConsideredBecauseInterface
 
 func (this *DefaultValidatorFixture) TestPastExpirationInvalid() {
 	past := time.Now().Add(-time.Nanosecond)
-	claim := DefaultClaims{Expiration: past.Unix(), Audience: "smarty"}
+	claim := StandardClaims{Expiration: past.Unix(), Audience: "smarty"}
 
 	err := this.validator.Validate(claim)
 
@@ -53,7 +53,7 @@ func (this *DefaultValidatorFixture) TestAudienceIsValid() {
 }
 
 func (this *DefaultValidatorFixture) assertAudience(audience string, expectedError error) {
-	claim := DefaultClaims{Expiration: time.Now().Add(time.Hour).Unix(), Audience: audience}
+	claim := StandardClaims{Expiration: time.Now().Add(time.Hour).Unix(), Audience: audience}
 
 	err := this.validator.Validate(claim)
 
