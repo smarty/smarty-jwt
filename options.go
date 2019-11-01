@@ -50,18 +50,3 @@ func WithEncodingSecret(id string, secret []byte) EncoderOption {
 		this.secret = secret
 	}
 }
-
-func translateNamedAlgorithm(name string) Algorithm {
-	switch name {
-	case noAlgorithm:
-		return NoAlgorithm{}
-	case hs256:
-		return HS256{}
-	case hs384:
-		return HS384{}
-	case hs512:
-		return HS512{}
-	default:
-		panic("unknown algorithm")
-	}
-}

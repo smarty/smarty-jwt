@@ -33,6 +33,21 @@ func _hmac(algorithm func() hash.Hash, value, secret []byte) []byte {
 	return hasher.Sum(nil)
 }
 
+func translateNamedAlgorithm(name string) Algorithm {
+	switch name {
+	case noAlgorithm:
+		return NoAlgorithm{}
+	case hs256:
+		return HS256{}
+	case hs384:
+		return HS384{}
+	case hs512:
+		return HS512{}
+	default:
+		panic("unknown algorithm")
+	}
+}
+
 const (
 	noAlgorithm = "none"
 	hs256       = "HS256"
