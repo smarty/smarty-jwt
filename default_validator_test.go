@@ -24,7 +24,7 @@ func (this *DefaultValidatorFixture) Setup() {
 
 func (this *DefaultValidatorFixture) TestFutureExpirationValid() {
 	future := time.Now().Add(time.Hour)
-	claim := &sampleClaim{Expiration: future, Audience: "smarty"}
+	claim := DefaultClaims{Expiration: future.Unix(), Audience: "smarty"}
 
 	err := this.validator.Validate(claim)
 
@@ -32,14 +32,14 @@ func (this *DefaultValidatorFixture) TestFutureExpirationValid() {
 }
 
 func (this *DefaultValidatorFixture) TestExpirationNotConsideredBecauseInterfaceNotImplemented() {
-	err := this.validator.Validate(sampleClaim{})
+	err := this.validator.Validate(0)
 
 	this.So(err, should.BeNil)
 }
 
 func (this *DefaultValidatorFixture) TestPastExpirationInvalid() {
 	past := time.Now().Add(-time.Nanosecond)
-	claim := &sampleClaim{Expiration: past, Audience: "smarty"}
+	claim := DefaultClaims{Expiration: past.Unix(), Audience: "smarty"}
 
 	err := this.validator.Validate(claim)
 
@@ -53,17 +53,9 @@ func (this *DefaultValidatorFixture) TestAudienceIsValid() {
 }
 
 func (this *DefaultValidatorFixture) assertAudience(audience string, expectedError error) {
-	claim := &sampleClaim{Expiration: time.Now().Add(time.Hour), Audience: audience}
+	claim := DefaultClaims{Expiration: time.Now().Add(time.Hour).Unix(), Audience: audience}
 
 	err := this.validator.Validate(claim)
 
 	this.So(err, should.Equal, expectedError)
 }
-
-type sampleClaim struct {
-	Expiration time.Time `json:"exp"`
-	Audience   string    `json:"aud"`
-}
-
-func (this *sampleClaim) TokenExpiration() time.Time { return this.Expiration }
-func (this *sampleClaim) TokenAudience() string      { return this.Audience }

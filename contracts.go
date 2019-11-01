@@ -5,10 +5,9 @@ import (
 	"time"
 )
 
-type headers struct {
-	Algorithm string `json:"alg,omitempty"`
-	KeyID     string `json:"kid,omitempty"`
-	Type      string `json:"typ,omitempty"`
+type Algorithm interface {
+	Name() string
+	ComputeHash(value, secret []byte) []byte
 }
 
 type Validator interface {
@@ -23,9 +22,10 @@ type TokenAudience interface {
 	TokenAudience() string
 }
 
-type Algorithm interface {
-	Name() string
-	ComputeHash(value, secret []byte) []byte
+type headers struct {
+	Algorithm string `json:"alg,omitempty"`
+	KeyID     string `json:"kid,omitempty"`
+	Type      string `json:"typ,omitempty"`
 }
 
 var (
