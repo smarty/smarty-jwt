@@ -13,4 +13,5 @@ tcr:
 	go fmt ./...
 	go test ./...
 
-.PHONY: test compile build
+
+.PHONY: test compile build tcr
