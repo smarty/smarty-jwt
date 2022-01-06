@@ -2,8 +2,16 @@ package jwt
 
 import (
 	"errors"
+	"io"
 	"time"
 )
+
+type Encoder1 interface {
+	Encode(io.Writer, interface{}) error
+}
+type Decoder1 interface {
+	Decode(interface{}, io.Reader) error
+}
 
 type Algorithm interface {
 	Name() string

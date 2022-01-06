@@ -15,34 +15,20 @@ type Decoder struct {
 
 func NewDecoder(options ...DecoderOption) *Decoder {
 	this := &Decoder{algorithms: map[string]Algorithm{}}
-	this.setOptions(options)
-	this.setDefaultOptions()
-	return this
-}
-func (this *Decoder) setOptions(options []DecoderOption) {
 	for _, option := range options {
 		option(this)
 	}
-}
-func (this *Decoder) setDefaultOptions() {
-	this.setDefaultValidator()
-	this.setDefaultSecretCallback()
-	this.setDefaultAlgorithm()
-}
-func (this *Decoder) setDefaultAlgorithm() {
 	if len(this.algorithms) == 0 {
 		WithDecodingAlgorithm(HS256{})(this)
 	}
-}
-func (this *Decoder) setDefaultSecretCallback() {
-	if this.secret == nil {
-		WithDecodingSecrets(noSecret)(this)
-	}
-}
-func (this *Decoder) setDefaultValidator() {
 	if len(this.validators) == 0 {
 		WithDecodingValidator(NewDefaultValidator())(this)
 	}
+	if this.secret == nil {
+		WithDecodingSecrets(noSecret)(this)
+	}
+
+	return this
 }
 
 func (this Decoder) Decode(token string, claims interface{}) error {
