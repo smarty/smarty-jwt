@@ -19,8 +19,10 @@ func (this HS256) ComputeHash(value, secret []byte) []byte { return _hmac(sha256
 
 type HS384 struct{}
 
-func (this HS384) Name() string                            { return hs384 }
-func (this HS384) ComputeHash(value, secret []byte) []byte { return _hmac(sha512.New, value, secret) }
+func (this HS384) Name() string { return hs384 }
+func (this HS384) ComputeHash(value, secret []byte) []byte {
+	return _hmac(sha512.New384, value, secret)
+}
 
 type HS512 struct{}
 
