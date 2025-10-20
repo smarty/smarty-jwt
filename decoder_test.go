@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/smarty/assertions/should"
 	"github.com/smarty/gunit"
+	"github.com/smarty/gunit/assert/should"
 )
 
 func TestDecoderFixture(t *testing.T) {
@@ -195,7 +195,7 @@ func (this *DecoderFixture) TestDefaultValues() {
 	var expected rfcExample
 	_ = defaultDecoder.Decode(token, &expected)
 
-	this.So(actual, should.Resemble, expected)
+	this.So(actual, should.Equal, expected)
 }
 
 type parsedPayload struct {

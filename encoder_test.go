@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/smarty/assertions/should"
 	"github.com/smarty/gunit"
+	"github.com/smarty/gunit/assert/should"
 )
 
 type rfcExample struct {
@@ -33,7 +33,7 @@ func (this *EncoderFixture) TestEncode() {
 
 	this.So(err, should.BeNil)
 	this.assertSignature(token)
-	this.So(this.decodeToken(token, nil), should.Resemble, original)
+	this.So(this.decodeToken(token, nil), should.Equal, original)
 }
 
 func (this *EncoderFixture) assertSignature(token string) bool {
@@ -61,7 +61,7 @@ func (this *EncoderFixture) TestEncodeWithSignature() {
 	token, err := encoder.Encode(original)
 
 	this.So(err, should.BeNil)
-	this.So(this.decodeToken(token, []byte("secret")), should.Resemble, original)
+	this.So(this.decodeToken(token, []byte("secret")), should.Equal, original)
 }
 
 func (this *EncoderFixture) TestEncodingFailsWhenSerializationFails() {
